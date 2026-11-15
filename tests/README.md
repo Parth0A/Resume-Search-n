@@ -9,7 +9,8 @@ temporary SQLite database (`temp_db` fixture) and never call the network.
 | `test_text.py` | Normalisation, word helpers, contact redaction. |
 | `test_dataset.py` | Upload validation, CSV reading, column detection, document reading. |
 | `test_extraction.py` | Skill parsing/matching (aliases, boundaries) and experience detection. |
-| `test_ranking.py` | Index, ranking, filters, job descriptions, score explanations, mixed-case regression, hybrid (mocked model). |
+| `test_ranking.py` | Index, ranking, filters, job descriptions, score explanations, job-seeker check, mixed-case regression. |
+| `test_hybrid.py` | Optional hybrid ranking with a fake embedding model (no download). |
 | `test_export.py` | Export tables, blind export, formula-injection protection. |
 | `test_auth.py` | Register, login, wrong password, duplicates, lockout, re-hash, schema upgrade. |
 | `test_shortlists.py` | Shortlists, per-user isolation, clearing data, DB rollback. |

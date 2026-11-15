@@ -71,7 +71,7 @@
 - [x] f. Blind screening
 - [x] g. scripts/evaluate.py
 - [x] h. Roles and saved shortlists
-- [ ] i. Optional hybrid ranking
+- [x] i. Optional hybrid ranking
 
 ## Task 8 â€” Final verification
 - [ ] pytest --cov, ruff, bandit, pip-audit, vulture

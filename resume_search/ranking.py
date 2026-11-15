@@ -12,7 +12,13 @@ from typing import Any
 
 import pandas as pd
 
-from resume_search.config import CATEGORY_COLUMN, MAX_JOB_DESCRIPTION_CHARS, NAME_COLUMN, TOP_TERMS
+from resume_search.config import (
+    CATEGORY_COLUMN,
+    MAX_JOB_DESCRIPTION_CHARS,
+    NAME_COLUMN,
+    SEARCH_METHODS,
+    TOP_TERMS,
+)
 from resume_search.dataset import find_resume_column
 from resume_search.extraction import extract_experience, extract_skills
 from resume_search.text import has_words, normalize_text, word_count
@@ -147,12 +153,15 @@ def _rank_with_count(
     min_experience: int | None,
     limit: int,
     include_unknown_experience: bool,
+    method: str = "tfidf",
+    raw_query: str = "",
 ) -> tuple[list[dict[str, Any]], int]:
     if index.matrix is None or not index.texts:
         return [], 0
     import numpy as np
 
-    scores = score_all(index, search_query)
+    tfidf = score_all(index, search_query)
+    scores = _hybrid(index, tfidf, raw_query or search_query) if method == "hybrid" else tfidf
     if "usable" not in index.extras:
         index.extras["usable"] = np.array([has_words(text) for text in index.texts], dtype=bool)
     keep = index.extras["usable"]
@@ -163,11 +172,21 @@ def _rank_with_count(
         ], dtype=bool)
         keep = keep & experience_ok
     candidates = np.flatnonzero(keep)
-    matched_count = int(np.count_nonzero(scores[candidates] > 0))
+    # "Matched" means the resume shares at least one term with the query.
+    matched_count = int(np.count_nonzero(tfidf[candidates] > 0))
     # Stable sort: highest score first, ties keep the original order.
     order = candidates[np.argsort(-scores[candidates], kind="stable")][:limit]
     rows = [_result_row(index, int(position), float(scores[position]), skills) for position in order]
     return rows, matched_count
+
+
+def _hybrid(index: SearchIndex, tfidf: Any, query: str) -> Any:
+    """Mix TF-IDF with semantic similarity; resume embeddings are cached on the index."""
+    from resume_search import hybrid
+
+    if "embeddings" not in index.extras:
+        index.extras["embeddings"] = hybrid.embed(index.texts)
+    return hybrid.combine(tfidf, hybrid.semantic_scores(index.extras["embeddings"], query))
 
 
 def _result_row(index: SearchIndex, position: int, score: float, skills: list[str]) -> dict[str, Any]:
@@ -215,15 +234,24 @@ def search_index(
     *,
     job_description: str = "",
     include_unknown_experience: bool = False,
+    method: str = "tfidf",
 ) -> dict[str, Any]:
-    """Run one search against a prepared index (only the query is transformed)."""
+    """Run one search against a prepared index (only the query is transformed).
+
+    ``method`` is ``"tfidf"`` (default) or ``"hybrid"`` (needs sentence-transformers).
+    "Why this score" always shows the TF-IDF term contributions.
+    """
     if limit < 1:
         raise ValueError("Result limit must be at least 1.")
+    if method not in SEARCH_METHODS:
+        raise ValueError(f"Unknown ranking method '{method}'.")
     started = time.perf_counter()
     unique_skills = list(dict.fromkeys(skill.strip() for skill in skills if skill.strip()))
     search_query = build_search_query(job_title, unique_skills, job_description)
+    raw_query = " ".join(part for part in (job_title, ", ".join(unique_skills), job_description) if part.strip())
     results, matched_count = _rank_with_count(
-        index, search_query, unique_skills, min_experience, limit, include_unknown_experience
+        index, search_query, unique_skills, min_experience, limit, include_unknown_experience,
+        method=method, raw_query=raw_query,
     )
     for row in results:
         row["top_terms"] = explain_score(index, search_query, row["original_index"])
@@ -234,6 +262,7 @@ def search_index(
         "search_query": search_query,
         "skills_requested": unique_skills,
         "min_experience": min_experience,
+        "method": method,
         "search_seconds": time.perf_counter() - started,
     }
 

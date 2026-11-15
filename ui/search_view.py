@@ -14,10 +14,12 @@ from resume_search.config import (
     RESULT_LIMIT_OPTIONS,
     SKILL_OPTIONS,
 )
+from resume_search.hybrid import is_available as hybrid_available
 from resume_search.ranking import search_index
 from ui import components, state
 
 logger = logging.getLogger(__name__)
+_METHODS = {"TF-IDF (fast)": "tfidf", "Hybrid (semantic)": "hybrid"}
 
 
 def _years(option: str) -> int | None:
@@ -53,6 +55,11 @@ def render_search_card() -> None:
                     "Job description", height=150, label_visibility="collapsed",
                     placeholder="Paste the full job description to rank against it.",
                 )
+            method_label = st.radio(
+                "Ranking method", list(_METHODS), horizontal=True,
+                help="Hybrid mixes TF-IDF with sentence embeddings (all-MiniLM-L6-v2). "
+                     "It needs the optional sentence-transformers package and is slower the first time.",
+            )
             blind_col, unknown_col, button_col = st.columns([1.25, 1.75, 1.45], vertical_alignment="center")
             with blind_col:
                 blind = st.toggle("Blind screening", value=True)
@@ -68,8 +75,12 @@ def render_search_card() -> None:
             + ("" if dataset is not None else " Upload a dataset to enable search.")
         )
     if submitted and dataset is not None:
+        method = _METHODS[method_label]
+        if method == "hybrid" and not hybrid_available():
+            st.error("Hybrid ranking needs the optional package: pip install sentence-transformers")
+            return
         _run_search(dataset, job_title or "", skills, job_description, _years(experience), int(limit),
-                    blind, include_unknown)
+                    blind, include_unknown, method)
 
 
 def _run_search(
@@ -81,12 +92,13 @@ def _run_search(
     limit: int,
     blind: bool,
     include_unknown: bool,
+    method: str = "tfidf",
 ) -> None:
     try:
-        with st.spinner("Ranking candidates…"):
+        with st.spinner("Ranking candidates…" if method == "tfidf" else "Ranking with embeddings (first run loads the model)…"):
             results = search_index(
                 dataset["index"], job_title, skills, min_years, limit,
-                job_description=job_description, include_unknown_experience=include_unknown,
+                job_description=job_description, include_unknown_experience=include_unknown, method=method,
             )
     except ValueError as error:
         st.error(str(error))
