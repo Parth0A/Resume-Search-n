@@ -153,8 +153,11 @@ def _rank_candidates(
         return []
     safe_texts = [str(text) if text is not None else "" for text in resume_texts]
     try:
+        # Query and resumes share the same normalisation so mixed-case resumes
+        # match a lower-cased query.
         vectorizer = TfidfVectorizer(
-            lowercase=False,
+            lowercase=True,
+            preprocessor=_normalize_text,
             token_pattern=r"(?u)\b\w+\b",
             stop_words="english",
             max_df=1.0,

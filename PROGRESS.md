@@ -6,8 +6,8 @@
 - [x] git repository initialised, baseline committed
 
 ## Task 1 — Fix the main bug
-- [ ] Shared normalisation for query and resumes (lowercase=True)
-- [ ] Regression test: capitalised resumes, match ranks first, score > 0.3
+- [x] Shared normalisation for query and resumes (lowercase=True)
+- [x] Regression test: capitalised resumes, match ranks first, score > 0.3
 
 ## Task 2 — Structure
 - [ ] resume_search/ package (config, text, dataset, extraction, ranking, export, auth, ai_features), no streamlit import

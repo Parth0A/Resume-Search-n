@@ -335,6 +335,24 @@ class TestRankCandidates:
         assert result[0]["original_index"] < result[1]["original_index"]
 
 
+class TestMixedCaseRegression:
+    def test_capitalized_resume_ranks_first(self):
+        df = pd.DataFrame({
+            "Resume_str": [
+                "Accountant handling Payroll and Tax returns.",
+                "PYTHON DEVELOPER skilled in Django, SQL and REST APIs.",
+                "Graphic Designer using Photoshop and Illustrator.",
+            ],
+            "Category": ["Finance", "Engineering", "Design"],
+        })
+        results = search_resumes(
+            df=df, job_title="Python Developer", skills=["Django"], min_experience=None, limit=3
+        )
+        top = results["results"][0]
+        assert top["original_index"] == 1
+        assert top["score"] > 0.3
+
+
 # ---------------------------------------------------------------------------
 # Minimum experience filtering
 # ---------------------------------------------------------------------------
