@@ -9,6 +9,7 @@ import streamlit as st
 
 from resume_search.auth import get_user
 from resume_search.config import SESSION_TIMEOUT_MINUTES
+from resume_search.export import to_safe_csv
 from resume_search.shortlists import (
     clear_user_data,
     count_shortlists,
@@ -89,7 +90,7 @@ def render_shortlists_page() -> None:
             return
         for shortlist in shortlists:
             count = len(shortlist["items"])
-            label = f"{shortlist['name']} · {count} candidate{'s' if count != 1 else ''}"
+            label = f"{components.md(shortlist['name'])} · {count} candidate{'s' if count != 1 else ''}"
             with st.expander(label, expanded=True):
                 table = pd.DataFrame([
                     {"Candidate": item["candidate"], "Score": round(item["score"], 2),
@@ -101,12 +102,12 @@ def render_shortlists_page() -> None:
                 export_col, delete_col = st.columns(2)
                 with export_col:
                     st.download_button(
-                        "Export CSV", data=table.to_csv(index=False), on_click="ignore",
+                        "Export CSV", data=to_safe_csv(table), on_click="ignore",
                         file_name=f"shortlist_{shortlist['id']}.csv", mime="text/csv",
                         key=f"export_shortlist_{shortlist['id']}",
                     )
                 with delete_col:
                     if st.button("Delete shortlist", key=f"delete_shortlist_{shortlist['id']}"):
                         delete_shortlist(user["id"], shortlist["id"])
-                        state.flash(f"Deleted “{shortlist['name']}”.")
+                        state.flash(f"Deleted “{components.md(shortlist['name'])}”.")
                         st.rerun()

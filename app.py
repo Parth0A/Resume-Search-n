@@ -71,8 +71,12 @@ def main() -> None:
     apply_theme()
     _initialise_database()
     state.init_state()
+    state.enforce_timeout()
 
     if state.current_user() is None:
+        message = state.pop_flash()
+        if message:
+            st.info(message)
         render_login()
         return
 

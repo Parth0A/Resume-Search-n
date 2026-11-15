@@ -140,7 +140,7 @@ def _candidate_panel(results: dict[str, Any], row: dict[str, Any], position: int
         summary = st.session_state[state.AI_OUTPUTS].get(f"summary_{row['original_index']}")
         if summary:
             st.markdown("**AI summary**")
-            st.write(summary)
+            st.text(summary)
             st.caption("AI output can be wrong. Verify it against the resume.")
         if st.session_state.get(view_key):
             st.text_area("Resume text", _resume_text(row, blind), height=220, disabled=True,
@@ -160,9 +160,9 @@ def _shortlist(results: dict[str, Any], row: dict[str, Any], name: str) -> None:
         st.error("Could not save to the shortlist. Try again.")
         return
     if added:
-        st.success(f"Added to shortlist “{title}”.")
+        st.success(f"Added to shortlist “{components.md(title)}”.")
     else:
-        st.info(f"Already in shortlist “{title}”.")
+        st.info(f"Already in shortlist “{components.md(title)}”.")
 
 
 def _summarise(row: dict[str, Any], blind: bool) -> None:
@@ -181,9 +181,10 @@ def _summarise(row: dict[str, Any], blind: bool) -> None:
 
 def _profiles(results: dict[str, Any], rows: list[dict[str, Any]]) -> None:
     for rank, row in enumerate(rows, start=1):
-        with st.expander(f"#{rank} · {candidate_label(row)} · {row['score']:.2f}"):
+        with st.expander(f"#{rank} · {components.md(candidate_label(row))} · {row['score']:.2f}"):
             components.render(components.relevance_bar(row["score"]))
-            st.markdown(f"**Role:** {row['category'] or 'Not specified'}  \n**Experience:** {_years(row)}")
+            st.markdown(f"**Role:** {components.md(row['category'] or 'Not specified')}  \n"
+                        f"**Experience:** {_years(row)}")
             if results["skills_requested"]:
                 components.render(components.chips(row["matched_skills"], "matched", "No requested skills found."))
                 components.render(components.chips(row["missing_skills"], "missing", "No missing skills."))

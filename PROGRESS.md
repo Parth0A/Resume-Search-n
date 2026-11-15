@@ -32,18 +32,18 @@
 - [x] 3.9 Differences from the design listed below
 
 ## Task 4 — Security
-- [ ] SECURITY_REVIEW.md written, every finding fixed
-- [ ] PBKDF2 600k, iterations per user, rehash on login
-- [ ] Lockout 15 min after 5 failures; same error for unknown e-mail / wrong password
-- [ ] 30 min inactivity timeout; sign-out clears session; Clear my data
-- [ ] Password rules (8+ chars, common passwords rejected)
-- [ ] Upload type/size validated before parsing
-- [ ] CSV formula-injection protection
-- [ ] No unescaped user text in unsafe_allow_html
-- [ ] Parameterised SQL; DB path env var; owner-only permissions; logging without PII
-- [ ] Gemini key from env/st.secrets; one resume per click; JSON validated
-- [ ] pip-audit and bandit run, findings fixed or documented
-- [ ] .gitignore complete; git history searched for secrets
+- [x] SECURITY_REVIEW.md written, every finding fixed (one accepted risk documented: registration reveals existing e-mails)
+- [x] PBKDF2 600k, iterations per user, rehash on login
+- [x] Lockout 15 min after 5 failures; same error for unknown e-mail / wrong password
+- [x] 30 min inactivity timeout; sign-out clears session; Clear my data
+- [x] Password rules (8+ chars, common passwords rejected)
+- [x] Upload type/size validated before parsing
+- [x] CSV formula-injection protection
+- [x] No unescaped user text in unsafe_allow_html (plus Markdown escaping for labels)
+- [x] Parameterised SQL; DB path env var; owner-only permissions; logging without PII
+- [x] Gemini key from env/st.secrets; one resume per click; JSON validated
+- [x] pip-audit and bandit run, findings fixed or documented
+- [x] .gitignore complete; git history searched for secrets (none found)
 
 ## Task 5 — Tests and quality
 - [ ] Tests per core module (dataset, extraction, ranking, export, auth, ai_features mocked)

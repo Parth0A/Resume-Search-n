@@ -87,7 +87,8 @@ def build_index(
     vectorizer = TfidfVectorizer(
         lowercase=True,
         preprocessor=normalize_text,
-        token_pattern=r"(?u)\b\w+\b",
+        # Bandit B106 false positive: "token_pattern" is a word regex, not a password.
+        token_pattern=r"(?u)\b\w+\b",  # nosec B106
         stop_words="english",
         sublinear_tf=False,
     )

@@ -7,11 +7,13 @@ the app needs, which keeps large uploads fast.
 from __future__ import annotations
 
 import io
+from pathlib import Path
 
 import pandas as pd
 
 from resume_search.config import (
     CATEGORY_COLUMN,
+    DATASET_EXTENSIONS,
     MAX_UPLOAD_BYTES,
     MAX_UPLOAD_MB,
     NAME_COLUMN,
@@ -38,6 +40,26 @@ def find_resume_column(df: pd.DataFrame) -> str:
 def is_resume_text_usable(series: pd.Series) -> bool:
     """Return True when at least one value in ``series`` contains words."""
     return any(has_words(value) for value in series.astype(str))
+
+
+def validate_upload(filename: str, size: int, allowed_extensions: frozenset[str] = DATASET_EXTENSIONS) -> str:
+    """Check an upload's extension and size *before* it is parsed.
+
+    Returns:
+        The lower-case extension, e.g. ``".csv"``.
+
+    Raises:
+        ValueError: for an unsupported type, an empty file or a file over the size limit.
+    """
+    extension = Path(filename or "").suffix.lower()
+    if extension not in allowed_extensions:
+        allowed = ", ".join(sorted(ext.lstrip(".").upper() for ext in allowed_extensions))
+        raise ValueError(f"Unsupported file type. Upload one of: {allowed}.")
+    if size <= 0:
+        raise ValueError("Uploaded file is empty.")
+    if size > MAX_UPLOAD_BYTES:
+        raise ValueError(f"Uploaded file exceeds the maximum allowed size of {MAX_UPLOAD_MB} MB.")
+    return extension
 
 
 def read_resume_csv(file_bytes: bytes) -> pd.DataFrame:

@@ -5,11 +5,13 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from resume_search.config import MAX_UPLOAD_BYTES
 from resume_search.dataset import (
     find_resume_column,
     is_resume_text_usable,
     load_resumes,
     read_resume_csv,
+    validate_upload,
 )
 
 
@@ -55,6 +57,26 @@ class TestLoadResumes:
     def test_rejects_malformed_csv(self):
         with pytest.raises(ValueError):
             load_resumes(b"not a csv at all @@@@")
+
+
+class TestValidateUpload:
+    def test_accepts_csv(self):
+        assert validate_upload("Resumes.CSV", 100) == ".csv"
+
+    @pytest.mark.parametrize(("name", "size", "message"), [
+        ("resumes.exe", 100, "Unsupported"),
+        ("resumes", 100, "Unsupported"),
+        ("resumes.csv", 0, "empty"),
+        ("resumes.csv", MAX_UPLOAD_BYTES + 1, "maximum"),
+    ])
+    def test_rejects_bad_uploads(self, name, size, message):
+        with pytest.raises(ValueError, match=message):
+            validate_upload(name, size)
+
+    def test_read_rejects_oversized_bytes(self, monkeypatch):
+        monkeypatch.setattr("resume_search.dataset.MAX_UPLOAD_BYTES", 10)
+        with pytest.raises(ValueError, match="maximum"):
+            read_resume_csv(b"Resume_str\n" + b"x" * 20)
 
 
 class TestFindResumeColumn:

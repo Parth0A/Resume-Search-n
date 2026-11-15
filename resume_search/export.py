@@ -1,4 +1,9 @@
-"""Preparing ranked results for CSV export."""
+"""Preparing ranked results for CSV export.
+
+Every CSV produced here is protected against spreadsheet formula injection:
+cells that start with ``=``, ``+``, ``-``, ``@`` (or a tab / carriage return)
+are prefixed with a single quote so spreadsheet apps show them as text.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +12,25 @@ from typing import Any
 import pandas as pd
 
 from resume_search.text import redact_contact_details
+
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def protect_formula(value: Any) -> Any:
+    """Prefix a string cell with ``'`` when a spreadsheet could run it as a formula."""
+    if isinstance(value, str) and value.startswith(_FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
+def to_safe_csv(df: pd.DataFrame) -> str:
+    """Return ``df`` as CSV text with every string cell formula-protected."""
+    safe = df.copy()
+    for column in safe.columns:
+        if safe[column].dtype == object or pd.api.types.is_string_dtype(safe[column]):
+            safe[column] = safe[column].map(protect_formula)
+    safe.columns = [protect_formula(str(column)) for column in safe.columns]
+    return safe.to_csv(index=False)
 
 
 def candidate_label(row: dict[str, Any]) -> str:
@@ -41,5 +65,5 @@ def prepare_export_data(results: list[dict[str, Any]], blind: bool = False) -> p
 
 
 def export_csv(results: list[dict[str, Any]], blind: bool = False) -> str:
-    """Return ranked results as CSV text."""
-    return prepare_export_data(results, blind).to_csv(index=False)
+    """Return ranked results as formula-safe CSV text."""
+    return to_safe_csv(prepare_export_data(results, blind))

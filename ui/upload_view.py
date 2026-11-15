@@ -10,7 +10,7 @@ from typing import Any
 import streamlit as st
 
 from resume_search.config import DATASET_EXTENSIONS, MAX_UPLOAD_MB
-from resume_search.dataset import read_resume_csv, validate_resume_dataframe
+from resume_search.dataset import read_resume_csv, validate_resume_dataframe, validate_upload
 from resume_search.ranking import build_index_from_dataframe
 from ui import components, state
 
@@ -34,6 +34,7 @@ def _prepare(uploaded: Any) -> dict[str, Any] | None:
         try:
             st.write(f"⏳ {_STEPS[0]}…")
             started = time.perf_counter()
+            validate_upload(uploaded.name, uploaded.size)  # type and size before parsing
             raw = read_resume_csv(uploaded.getvalue())
             timings.append(time.perf_counter() - started)
             st.write(f"✅ {_STEPS[0]} · {timings[-1]:.2f}s — ⏳ {_STEPS[1]}…")

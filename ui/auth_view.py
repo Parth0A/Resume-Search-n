@@ -6,7 +6,7 @@ import logging
 
 import streamlit as st
 
-from resume_search.auth import authenticate_user, register_user
+from resume_search.auth import INVALID_CREDENTIALS, authenticate_user, register_user
 from resume_search.config import ROLES
 from ui import components, state
 
@@ -53,6 +53,7 @@ def _render_form() -> None:
     ) or _SIGN_IN
     creating = mode == _CREATE
     with st.form("auth_form", clear_on_submit=False, border=False):
+        name = st.text_input("Full name", placeholder="Your name", max_chars=80) if creating else ""
         email = st.text_input("Email address", placeholder="you@company.com", autocomplete="email")
         password = st.text_input(
             "Password", type="password",
@@ -62,19 +63,19 @@ def _render_form() -> None:
         role = st.selectbox("Account type", ROLES) if creating else None
         submitted = st.form_submit_button(mode, type="primary", use_container_width=True)
     if submitted:
-        _submit(creating, email, password, role)
+        _submit(creating, email, password, role, name)
     components.render(
         '<div class="rs-login-foot">Protected with salted PBKDF2 hashing · locks after 5 failed attempts</div>'
     )
 
 
-def _submit(creating: bool, email: str, password: str, role: str | None) -> None:
+def _submit(creating: bool, email: str, password: str, role: str | None, name: str) -> None:
     try:
         with st.spinner("Signing you in…"):
             if creating:
-                register_user(email, password, role or ROLES[0])
+                register_user(email, password, role or ROLES[0], name)
             user = authenticate_user(email, password)
-    except ValueError as error:
+    except ValueError as error:  # includes AccountLockedError; messages contain no user input
         st.error(str(error))
         return
     except Exception:
@@ -82,7 +83,7 @@ def _submit(creating: bool, email: str, password: str, role: str | None) -> None
         st.error("Sign-in could not be completed. Check local database access and try again.")
         return
     if user is None:
-        st.error("Email or password is incorrect.")
+        st.error(INVALID_CREDENTIALS)
         return
     state.sign_in(user)
     st.rerun()

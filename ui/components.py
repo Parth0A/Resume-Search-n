@@ -7,6 +7,7 @@ or resume text can never inject HTML through ``unsafe_allow_html``.
 from __future__ import annotations
 
 import base64
+import re
 from functools import lru_cache
 from html import escape
 from pathlib import Path
@@ -19,6 +20,14 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 ICON_SVG = ASSETS / "resume_search_icon.svg"
 ICON_PNG = ASSETS / "resume_search_icon_512.png"
 FAVICON = ASSETS / "resume_search_favicon_64.png"
+
+
+_MARKDOWN_SPECIAL = re.compile(r"([\\`*_{}\[\]()<>#+\-.!|~$:])")
+
+
+def md(text: object) -> str:
+    """Escape Markdown so CSV or user text shows literally in labels and messages."""
+    return _MARKDOWN_SPECIAL.sub(r"\\\1", str(text))
 
 
 def render(markup: str) -> None:

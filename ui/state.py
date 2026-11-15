@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import streamlit as st
 
-from resume_search.config import ROLE_RECRUITER
+from resume_search.config import ROLE_RECRUITER, SESSION_TIMEOUT_MINUTES
 
 USER = "rs_user"
+LAST_ACTIVITY = "rs_last_activity"
 PAGE = "rs_page"
 DATASET = "rs_dataset"
 RESULTS = "rs_results"
@@ -22,6 +24,26 @@ PAGE_SHORTLISTS = "shortlists"
 PAGE_AI = "ai"
 PAGE_PROFILE = "profile"
 PAGE_PRIVACY = "privacy"
+
+
+def enforce_timeout(now: float | None = None) -> bool:
+    """Sign the user out after ``SESSION_TIMEOUT_MINUTES`` of inactivity.
+
+    Returns:
+        True when the session had expired and was cleared.
+    """
+    current = time.time() if now is None else now
+    last = st.session_state.get(LAST_ACTIVITY)
+    expired = (
+        current_user() is not None
+        and last is not None
+        and current - last > SESSION_TIMEOUT_MINUTES * 60
+    )
+    if expired:
+        clear_session()
+        flash("You were signed out after 30 minutes of inactivity.")
+    st.session_state[LAST_ACTIVITY] = current
+    return expired
 
 
 def init_state() -> None:
