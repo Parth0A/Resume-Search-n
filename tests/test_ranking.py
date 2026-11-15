@@ -196,6 +196,20 @@ class TestSearchOptions:
         assert query.startswith("engineer sql")
         assert "kafka" in query
 
+    def test_job_description_is_bounded_and_blank_query_rejected(self):
+        long_description = "kafka " * 5000
+        assert len(build_search_query("", [], long_description)) <= 8_000
+        with pytest.raises(ValueError, match="job title or paste a job description"):
+            build_search_query("  ", ["Python"], "   ")
+
+    def test_job_description_changes_ranking(self):
+        index = build_index(["Python developer with Kafka streaming", "Python developer with Django"])
+        plain = search_index(index, "Python developer", [], None, 2)
+        with_jd = search_index(index, "Python developer", [], None, 2, job_description="Kafka streaming pipelines")
+        assert plain["results"][0]["original_index"] == 1  # shorter resume wins on the title alone
+        assert with_jd["results"][0]["original_index"] == 0  # the job description flips the order
+        assert with_jd["results"][0]["score"] > with_jd["results"][1]["score"]
+
     def test_include_unknown_experience(self):
         index = build_index(["Engineer resume", "Engineer with 4 years experience", "Engineer with 1 years experience"])
         strict = search_index(index, "engineer", [], 3, 5)

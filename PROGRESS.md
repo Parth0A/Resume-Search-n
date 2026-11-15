@@ -66,7 +66,7 @@
 - [x] a. Skill aliases and boundary rules
 - [x] b. Better experience detection + include-unknown toggle
 - [x] c. Why this score (top 5 terms)
-- [ ] d. Paste job description
+- [x] d. Paste job description
 - [ ] e. PDF/DOCX/TXT upload, short-file warning
 - [ ] f. Blind screening
 - [ ] g. scripts/evaluate.py
