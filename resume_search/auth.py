@@ -1,30 +1,29 @@
-"""Local SQLite authentication for the Resume Search prototype.
+"""Local SQLite account authentication.
 
 Passwords are salted and hashed with PBKDF2; plaintext passwords are never stored.
-For public production deployment, configure persistent storage and review the auth design.
 """
+
 from __future__ import annotations
 
 import hashlib
 import hmac
-import os
 import re
 import secrets
 import sqlite3
-from pathlib import Path
+from typing import Any
 
-DB_PATH = Path(os.getenv("RESUME_SEARCH_DB", str(Path(__file__).with_name("resume_search.db"))))
-_ITERATIONS = 310_000
+from resume_search import config
 
 
 def _connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DB_PATH, timeout=10)
+    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(config.DB_PATH, timeout=10)
     connection.row_factory = sqlite3.Row
     return connection
 
 
 def initialize_auth_db() -> None:
+    """Create the users table if it does not exist."""
     with _connect() as connection:
         connection.execute(
             """
@@ -48,29 +47,33 @@ def _normalize_email(email: str) -> str:
 
 
 def _hash_password(password: str, salt: bytes) -> str:
-    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, _ITERATIONS).hex()
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 310_000).hex()
 
 
 def register_user(email: str, password: str, role: str) -> None:
-    normalized_email = _normalize_email(email)
-    if len(password) < 8:
-        raise ValueError("Use a password with at least 8 characters.")
-    if role not in {"Recruiter", "Job seeker"}:
-        raise ValueError("Choose a valid account type.")
+    """Create an account.
 
+    Raises:
+        ValueError: for an invalid e-mail, short password, bad role or duplicate.
+    """
+    normalized_email = _normalize_email(email)
+    if len(password) < config.MIN_PASSWORD_LENGTH:
+        raise ValueError("Use a password with at least 8 characters.")
+    if role not in config.ROLES:
+        raise ValueError("Choose a valid account type.")
     salt = secrets.token_bytes(16)
-    password_hash = _hash_password(password, salt)
     try:
         with _connect() as connection:
             connection.execute(
                 "INSERT INTO users (email, password_hash, salt, role) VALUES (?, ?, ?, ?)",
-                (normalized_email, password_hash, salt.hex(), role),
+                (normalized_email, _hash_password(password, salt), salt.hex(), role),
             )
     except sqlite3.IntegrityError as error:
         raise ValueError("An account with this email already exists. Sign in instead.") from error
 
 
-def authenticate_user(email: str, password: str) -> dict | None:
+def authenticate_user(email: str, password: str) -> dict[str, Any] | None:
+    """Return the user when the e-mail and password match, otherwise None."""
     normalized_email = _normalize_email(email)
     with _connect() as connection:
         user = connection.execute(

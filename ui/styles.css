@@ -1,0 +1,24 @@
+/* Resume Search — the single stylesheet (merged from the inline blocks in app.py). */
+:root { --rs-navy: #142b59; --rs-border: #18396f; --rs-text: #172642; --rs-sky-soft: #edf6ff; }
+.stApp { background: #f7f9fd; color: var(--rs-text); }
+.main .block-container { max-width: 1180px; padding-top: 1.4rem; padding-bottom: 3rem; }
+[data-testid="stSidebar"] { background: #101b31; }
+[data-testid="stSidebar"] * { color: #eef3ff; }
+
+div[data-testid="stFileUploader"], div[data-testid="stForm"], div[data-testid="stMetric"],
+div[data-testid="stExpander"] {
+  background: transparent; border: 1.5px solid var(--rs-border); border-radius: 18px;
+}
+div[data-testid="stMultiSelect"] [data-baseweb="select"] > div { background: var(--rs-sky-soft); border-radius: 13px; }
+div[data-testid="stMultiSelect"] [data-baseweb="tag"] { background: var(--rs-navy); border-radius: 999px; }
+div[data-testid="stMultiSelect"] [data-baseweb="tag"] * { color: #fff; fill: #fff; }
+div.stButton > button, div.stFormSubmitButton > button, div.stDownloadButton > button { border-radius: 12px; font-weight: 650; }
+
+.brand-mark { display: flex; align-items: center; gap: 10px; padding: 8px 2px 20px; font-size: 1.25rem; font-weight: 800; }
+.brand-accent { color: #8ea6ff; }
+.hero { background: linear-gradient(125deg, #101b31 0%, #233b72 64%, #526fe2 100%); border-radius: 20px;
+  padding: 1.8rem 2rem; color: #fff; margin-bottom: 1.6rem; }
+.hero h1 { color: #fff; }
+.login-heading { color: #14213b; font-size: 2rem; font-weight: 800; }
+.login-muted, .small-note { color: #68758d; }
+.footer-note { color: #7b869b; text-align: center; font-size: .82rem; padding-top: 1.8rem; }

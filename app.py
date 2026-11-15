@@ -2,19 +2,26 @@
 
 from __future__ import annotations
 
-import io
+import json
+
 import streamlit as st
 
-from backend import _prepare_export_data, load_resumes, search_resumes
-from ai_features import GeminiConfigurationError, analyze_resume, analyze_skill_gap, generate_job_description
+from resume_search.ai_features import (
+    GeminiConfigurationError,
+    analyze_resume,
+    analyze_skill_gap,
+    generate_job_description,
+)
+from resume_search.dataset import find_resume_column, load_resumes
+from resume_search.export import export_csv
+from resume_search.extraction import parse_skills
+from resume_search.ranking import search_resumes
+from ui.theme import apply_theme
 
 
 def _parse_skills(skills_text: str) -> list:
     """Validate comma-separated skills with the backend helper."""
-    if not skills_text.strip():
-        return []
-    from backend import _validate_skills
-    return _validate_skills(skills_text)
+    return parse_skills(skills_text)
 
 
 def _render_results(results: dict) -> None:
@@ -86,13 +93,10 @@ def _render_results(results: dict) -> None:
                 disabled=True,
             )
 
-    export_df = _prepare_export_data(rows, total)
-    if not export_df.empty:
-        buffer: io.StringIO = io.StringIO()
-        export_df.to_csv(buffer, index=False)
+    if rows:
         st.download_button(
             "Download ranked results (CSV)",
-            data=buffer.getvalue(),
+            data=export_csv(rows),
             file_name="resume_search_results.csv",
             mime="text/csv",
             type="primary",
@@ -107,257 +111,16 @@ def _main() -> None:
         initial_sidebar_state="expanded",
     )
 
-    st.markdown(
-        """
-        <style>
-        :root { --rs-navy: #142b59; --rs-navy-strong: #10234b; --rs-sky-soft: #edf6ff; --rs-border: #18396f; --rs-text: #172642; --rs-muted: #63718a; }
-        .stApp { background: #f7f9fd; color: var(--rs-text); }
-        .main .block-container { max-width: 1180px; padding-top: 1.4rem; padding-bottom: 3rem; }
-        [data-testid="stSidebar"] { background: #101b31; }
-        [data-testid="stSidebar"] * { color: #eef3ff; }
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #c7d3ee; }
-
-        /* Clean outlined cards: no solid fill, navy border, rounded corners. */
-        div[data-testid="stFileUploader"],
-        div[data-testid="stForm"],
-        div[data-testid="stMetric"],
-        div[data-testid="stExpander"],
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: transparent !important;
-            border: 1.5px solid var(--rs-border) !important;
-            border-radius: 18px !important;
-            box-shadow: none !important;
-        }
-        div[data-testid="stFileUploader"] { padding: .85rem; }
-        div[data-testid="stForm"] { padding: 1.2rem 1.3rem 1rem; }
-        div[data-testid="stMetric"] { padding: 1rem; }
-        div[data-testid="stExpander"] { overflow: hidden; }
-        /* Inputs remain easy to spot; only the skill search/input area gets a faint sky tint. */
-        div[data-testid="stTextInput"] input,
-        div[data-testid="stNumberInput"] input,
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-        div[data-testid="stFileUploader"] section {
-            border: 1.5px solid var(--rs-border) !important;
-            border-radius: 12px !important;
-            box-shadow: none !important;
-        }
-        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
-            background: var(--rs-sky-soft) !important;
-            border: 1.5px solid var(--rs-border) !important;
-            border-radius: 13px !important;
-            min-height: 2.8rem;
-            box-shadow: none !important;
-        }
-        /* Selected skill chips: navy fill, white text, rounded edges. */
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] {
-            background: var(--rs-navy) !important;
-            border: 1px solid var(--rs-navy-strong) !important;
-            border-radius: 999px !important;
-            padding: 2px 5px;
-        }
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] *,
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {
-            color: #ffffff !important;
-            fill: #ffffff !important;
-        }
-        div[data-testid="stMultiSelect"] input { background: transparent !important; }
-        div.stButton > button, div.stFormSubmitButton > button, div.stDownloadButton > button {
-            border: 1.5px solid var(--rs-border) !important;
-            border-radius: 12px !important;
-            font-weight: 650;
-            min-height: 2.7rem;
-            box-shadow: none !important;
-        }
-        div.stFormSubmitButton > button[kind="primary"] {
-            background: var(--rs-navy) !important;
-            color: #ffffff !important;
-        }
-        div[data-testid="stProgress"] > div > div { background: linear-gradient(90deg, #18396f, #547dbb); }
-        /* When Streamlit is in dark theme, use a black canvas and white controls/cards. */
-        [data-theme="dark"] .stApp, html[data-theme="dark"] .stApp,
-        [data-testid="stAppViewContainer"][data-theme="dark"] {
-            background: #05070b !important;
-            color: #f5f7fb !important;
-        }
-        [data-theme="dark"] div[data-testid="stFileUploader"],
-        [data-theme="dark"] div[data-testid="stForm"],
-        [data-theme="dark"] div[data-testid="stMetric"],
-        [data-theme="dark"] div[data-testid="stExpander"],
-        [data-theme="dark"] div[data-testid="stVerticalBlockBorderWrapper"],
-        html[data-theme="dark"] div[data-testid="stFileUploader"],
-        html[data-theme="dark"] div[data-testid="stForm"],
-        html[data-theme="dark"] div[data-testid="stMetric"],
-        html[data-theme="dark"] div[data-testid="stExpander"] {
-            background: #ffffff !important;
-            color: #172642 !important;
-            border-color: #18396f !important;
-        }
-        [data-theme="dark"] div[data-testid="stFileUploader"] *,
-        [data-theme="dark"] div[data-testid="stForm"] *,
-        [data-theme="dark"] div[data-testid="stMetric"] *,
-        [data-theme="dark"] div[data-testid="stExpander"] *,
-        html[data-theme="dark"] div[data-testid="stFileUploader"] *,
-        html[data-theme="dark"] div[data-testid="stForm"] *,
-        html[data-theme="dark"] div[data-testid="stMetric"] *,
-        html[data-theme="dark"] div[data-testid="stExpander"] * {
-            color: #172642;
-        }
-        [data-theme="dark"] div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div,
-        html[data-theme="dark"] div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
-            background: #edf6ff !important;
-            border-color: #18396f !important;
-        }
-        [data-theme="dark"] div[data-testid="stTextInput"] input,
-        [data-theme="dark"] div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-        html[data-theme="dark"] div[data-testid="stTextInput"] input,
-        html[data-theme="dark"] div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-            background: #ffffff !important;
-            color: #172642 !important;
-            border-color: #18396f !important;
-        }
-        .brand-mark {
-            display: flex; align-items: center; gap: 10px; padding: 8px 2px 20px;
-            font-size: 1.25rem; font-weight: 800; color: white;
-        }
-        .brand-icon {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px; border-radius: 12px;
-            background: linear-gradient(135deg, #4d6bff, #8c74ff);
-            color: white; font-size: 1.2rem;
-        }
-        .brand-accent { color: #8ea6ff; }
-        .side-note {
-            border: 1px solid #34435f; background: #182641; border-radius: 12px;
-            padding: 12px; color: #dbe5ff; font-size: .83rem; line-height: 1.5;
-        }
-        .hero {
-            background: linear-gradient(125deg, #101b31 0%, #233b72 64%, #526fe2 100%);
-            border-radius: 20px; padding: 1.8rem 2rem; color: white;
-            margin-bottom: 1.6rem; box-shadow: 0 14px 35px rgba(25,43,91,.16);
-        }
-        .hero-kicker { color: #bdcaff; font-size: .76rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
-        .hero h1 { color: white; font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.12; letter-spacing: -.04em; margin: .45rem 0 .65rem; }
-        .hero p { color: #e0e8ff; font-size: 1rem; line-height: 1.6; max-width: 730px; margin: 0; }
-        /* Final override: keep search/upload panels transparent with navy outlines. */
-        div[data-testid="stFileUploader"],
-        div[data-testid="stForm"],
-        div[data-testid="stMetric"],
-        div[data-testid="stExpander"],
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: transparent !important;
-            border: 1.5px solid #18396f !important;
-            border-radius: 18px !important;
-            box-shadow: none !important;
-        }
-        div[data-testid="stFileUploader"] section {
-            background: transparent !important;
-            border: 1.5px dashed #18396f !important;
-            border-radius: 14px !important;
-        }
-        div[data-testid="stTextInput"] input,
-        div[data-testid="stNumberInput"] input,
-        div[data-testid="stSelectbox"] [data-baseweb="select"] > div {
-            background: transparent !important;
-            color: var(--rs-text) !important;
-            border: 1.5px solid #18396f !important;
-            border-radius: 12px !important;
-        }
-        div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
-            background: #edf6ff !important;
-            color: #172642 !important;
-            border: 1.5px solid #18396f !important;
-            border-radius: 13px !important;
-        }
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] {
-            background: #142b59 !important;
-            border: 1px solid #10234b !important;
-            border-radius: 999px !important;
-        }
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] *,
-        div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {
-            color: #ffffff !important;
-            fill: #ffffff !important;
-        }
-        div[data-testid="stFileUploader"] button,
-        div.stButton > button,
-        div.stFormSubmitButton > button,
-        div.stDownloadButton > button {
-            border: 1.5px solid #18396f !important;
-            border-radius: 12px !important;
-            box-shadow: none !important;
-        }
-        /* Streamlit versions expose theme on different ancestor elements. */
-        html[data-theme="dark"] .stApp,
-        [data-testid="stAppViewContainer"][data-theme="dark"] .stApp,
-        .stApp[data-theme="dark"] {
-            background: #05070b !important;
-            color: #f5f7fb !important;
-        }
-        html[data-theme="dark"] div[data-testid="stFileUploader"],
-        html[data-theme="dark"] div[data-testid="stForm"],
-        html[data-theme="dark"] div[data-testid="stMetric"],
-        html[data-theme="dark"] div[data-testid="stExpander"],
-        html[data-theme="dark"] div[data-testid="stVerticalBlockBorderWrapper"],
-        [data-testid="stAppViewContainer"][data-theme="dark"] div[data-testid="stFileUploader"],
-        [data-testid="stAppViewContainer"][data-theme="dark"] div[data-testid="stForm"],
-        [data-testid="stAppViewContainer"][data-theme="dark"] div[data-testid="stMetric"],
-        [data-testid="stAppViewContainer"][data-theme="dark"] div[data-testid="stExpander"] {
-            background: #ffffff !important;
-            color: #172642 !important;
-            border-color: #18396f !important;
-        }
-        html[data-theme="dark"] div[data-testid="stTextInput"] input,
-        html[data-theme="dark"] div[data-testid="stNumberInput"] input,
-        html[data-theme="dark"] div[data-testid="stSelectbox"] [data-baseweb="select"] > div {
-            background: #ffffff !important;
-            color: #172642 !important;
-            border-color: #18396f !important;
-        }
-        html[data-theme="dark"] div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
-            background: #edf6ff !important;
-            color: #172642 !important;
-            border-color: #18396f !important;
-        }
-        .small-note { color: #68758d; font-size: .92rem; }
-        .footer-note { color: #7b869b; text-align: center; font-size: .82rem; padding-top: 1.8rem; }
-        @media (max-width: 700px) {
-            .main .block-container { padding: 1rem .8rem 2rem; }
-            .hero { padding: 1.35rem 1.15rem; border-radius: 15px; }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    apply_theme()
 
     # Real local SQLite account authentication.
-    from auth import authenticate_user, initialize_auth_db, register_user
+    from resume_search.auth import authenticate_user, initialize_auth_db, register_user
     initialize_auth_db()
 
     if "resume_search_signed_in" not in st.session_state:
         st.session_state["resume_search_signed_in"] = False
 
     if not st.session_state["resume_search_signed_in"]:
-        st.markdown(
-            """
-            <style>
-            .main .block-container { max-width: 1240px; padding-top: 2rem; padding-bottom: 1.5rem; }
-            [data-testid="stSidebar"] { display: none; }
-            .login-brand-panel { min-height: 590px; padding: 2.5rem 2rem; border-radius: 24px; background: linear-gradient(145deg,#101b31 0%,#243c75 62%,#526fe2 100%); color: white; display:flex; flex-direction:column; justify-content:center; }
-            .login-logo { display:inline-flex; align-items:center; justify-content:center; width:54px; height:54px; border-radius:16px; background:linear-gradient(135deg,#4d6bff,#8c74ff); color:#fff; font-size:1.65rem; font-weight:800; margin-bottom:1.7rem; }
-            .login-eyebrow { color:#c3d0ff; text-transform:uppercase; letter-spacing:.15em; font-weight:800; font-size:.75rem; }
-            .login-title { font-size:clamp(2.4rem,4vw,3.8rem); line-height:1.05; letter-spacing:-.05em; color:#fff; font-weight:850; margin:.7rem 0 1rem; }
-            .login-copy { color:#e0e8ff; font-size:1.03rem; line-height:1.75; }
-            .login-benefit { color:#f0f3ff; font-size:.94rem; margin-top:1.15rem; }
-            .login-heading { color:#14213b; font-size:2rem; font-weight:800; letter-spacing:-.04em; margin:.5rem 0 .2rem; }
-            .login-muted { color:#71809a; font-size:.94rem; margin-bottom:1.3rem; }
-            div[data-testid="stForm"] { background:#fff; border:1px solid #e1e7f2; border-radius:20px; padding:1.25rem 1.35rem; box-shadow:0 18px 48px rgba(30,48,90,.07); }
-            div.stButton > button, div.stFormSubmitButton > button { min-height:2.8rem; border-radius:10px; font-weight:700; }
-            .login-foot { color:#8a95a8; text-align:center; font-size:.8rem; margin-top:1.2rem; }
-            @media(max-width:760px) { .login-brand-panel { min-height:unset; padding:1.5rem; margin-bottom:1rem; } .login-title { font-size:2.4rem; } }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
         brand_col, form_col = st.columns([1, 1], gap="large", vertical_alignment="center")
         with brand_col:
             st.markdown(
@@ -453,8 +216,7 @@ def _main() -> None:
     uploaded_file = st.file_uploader(
         "Drag and drop your resume CSV here, or browse files",
         type=["csv"],
-        max_upload_size=1024,
-        help="Configured upload limit: 1 GB. Very large datasets may still require substantial memory and processing time.",
+        help="Configured upload limit: 200 MB. Very large datasets may still require substantial memory and processing time.",
     )
     if uploaded_file is not None:
         st.success(f"Dataset ready: {uploaded_file.name} · {uploaded_file.size / (1024 * 1024):.1f} MB")
@@ -529,7 +291,7 @@ def _main() -> None:
 
         with st.spinner("Reading resumes and ranking matches…"):
             try:
-                df = load_resumes(uploaded_file.getvalue(), uploaded_file.name)
+                df = load_resumes(uploaded_file.getvalue())
                 results = search_resumes(
                     df=df,
                     job_title=job_title.strip(),
@@ -549,9 +311,8 @@ def _main() -> None:
     st.caption("Optional AI tools for recruiters and job seekers. Resume text is sent to Google Gemini only when you run an AI action.")
     if uploaded_file is not None:
         try:
-            ai_df = load_resumes(uploaded_file.getvalue(), uploaded_file.name)
-            from backend import _find_resume_column
-            resume_column = _find_resume_column(ai_df)
+            ai_df = load_resumes(uploaded_file.getvalue())
+            resume_column = find_resume_column(ai_df)
             candidate_index = st.selectbox("Select a resume for AI analysis", options=list(range(len(ai_df))), format_func=lambda idx: f"Candidate {idx + 1}", key="ai_candidate_index")
             ai_resume_text = str(ai_df.iloc[candidate_index][resume_column] or "")
             tab_profile, tab_gap, tab_jd = st.tabs(["Resume Intelligence", "Skill Gap Analyzer", "Job Description Generator"])
@@ -597,7 +358,6 @@ def _main() -> None:
                         except Exception:
                             st.error("Gemini request failed. Check your API key, connection, and free-tier quota.")
                 if "ai_job_description" in st.session_state:
-                    import json
                     jd_result = st.session_state["ai_job_description"]
                     st.json(jd_result)
                     st.download_button("Download job description (JSON)", data=json.dumps(jd_result, indent=2, ensure_ascii=False), file_name="generated_job_description.json", mime="application/json", key="ai_jd_download")

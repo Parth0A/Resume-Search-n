@@ -10,14 +10,15 @@
 - [x] Regression test: capitalised resumes, match ranks first, score > 0.3
 
 ## Task 2 — Structure
-- [ ] resume_search/ package (config, text, dataset, extraction, ranking, export, auth, ai_features), no streamlit import
-- [ ] ui/ modules (theme, components, auth_view, sidebar, header, upload_view, search_view, results_view, ai_view, profile_view, state) + styles.css
-- [ ] app.py thin entry point
-- [ ] assets/, tests/ per module, data/, docs/, scripts/
-- [ ] No duplicate code (one normaliser, one CSV reader, one constants file, one CSS file)
-- [ ] ruff check . clean; vulture clean
-- [ ] UI uses only public core functions
-- [ ] Caches/stray files removed; old tests kept and passing
+- [x] resume_search/ package (config, text, dataset, extraction, ranking, export, auth, ai_features), no streamlit import
+- [x] ui/ folder with theme.py + the single styles.css (all inline CSS merged). The remaining ui/ screen modules
+      are created in Task 3 together with the redesign, so the old screens are not written twice (see notes).
+- [ ] app.py thin entry point (completed in Task 3 with the ui/ screens)
+- [x] assets/, tests/ per module, data/, docs/, scripts/
+- [x] No duplicate code (one normaliser, one CSV reader, one constants file, one CSS file)
+- [x] ruff check . clean; vulture clean
+- [x] UI uses only public core functions
+- [x] Caches/stray files removed; old tests kept (split into test_text/dataset/extraction/ranking/export) and passing
 
 ## Task 3 — UI design
 - [ ] 3.1 Design tokens, fonts, .streamlit/config.toml, hide menu/footer/deploy
