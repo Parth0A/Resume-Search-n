@@ -1,0 +1,401 @@
+query,resume_id,grade
+python developer django api,0,2
+python developer django api,1,1
+python developer django api,2,0
+python developer django api,3,0
+python developer django api,4,1
+python developer django api,5,0
+python developer django api,6,0
+python developer django api,7,0
+python developer django api,8,2
+python developer django api,9,1
+python developer django api,10,0
+python developer django api,11,0
+python developer django api,12,1
+python developer django api,13,0
+python developer django api,14,0
+python developer django api,15,0
+python developer django api,16,2
+python developer django api,17,1
+python developer django api,18,0
+python developer django api,19,0
+python developer django api,20,1
+python developer django api,21,0
+python developer django api,22,0
+python developer django api,23,0
+python developer django api,24,2
+python developer django api,25,1
+python developer django api,26,0
+python developer django api,27,0
+python developer django api,28,1
+python developer django api,29,0
+python developer django api,30,0
+python developer django api,31,0
+python developer django api,32,2
+python developer django api,33,1
+python developer django api,34,0
+python developer django api,35,0
+python developer django api,36,1
+python developer django api,37,0
+python developer django api,38,0
+python developer django api,39,0
+data scientist machine learning,0,1
+data scientist machine learning,1,2
+data scientist machine learning,2,0
+data scientist machine learning,3,0
+data scientist machine learning,4,0
+data scientist machine learning,5,1
+data scientist machine learning,6,0
+data scientist machine learning,7,0
+data scientist machine learning,8,1
+data scientist machine learning,9,2
+data scientist machine learning,10,0
+data scientist machine learning,11,0
+data scientist machine learning,12,0
+data scientist machine learning,13,1
+data scientist machine learning,14,0
+data scientist machine learning,15,0
+data scientist machine learning,16,1
+data scientist machine learning,17,2
+data scientist machine learning,18,0
+data scientist machine learning,19,0
+data scientist machine learning,20,0
+data scientist machine learning,21,1
+data scientist machine learning,22,0
+data scientist machine learning,23,0
+data scientist machine learning,24,1
+data scientist machine learning,25,2
+data scientist machine learning,26,0
+data scientist machine learning,27,0
+data scientist machine learning,28,0
+data scientist machine learning,29,1
+data scientist machine learning,30,0
+data scientist machine learning,31,0
+data scientist machine learning,32,1
+data scientist machine learning,33,2
+data scientist machine learning,34,0
+data scientist machine learning,35,0
+data scientist machine learning,36,0
+data scientist machine learning,37,1
+data scientist machine learning,38,0
+data scientist machine learning,39,0
+frontend developer react javascript,0,0
+frontend developer react javascript,1,0
+frontend developer react javascript,2,2
+frontend developer react javascript,3,0
+frontend developer react javascript,4,0
+frontend developer react javascript,5,0
+frontend developer react javascript,6,0
+frontend developer react javascript,7,1
+frontend developer react javascript,8,0
+frontend developer react javascript,9,0
+frontend developer react javascript,10,2
+frontend developer react javascript,11,0
+frontend developer react javascript,12,0
+frontend developer react javascript,13,0
+frontend developer react javascript,14,0
+frontend developer react javascript,15,1
+frontend developer react javascript,16,0
+frontend developer react javascript,17,0
+frontend developer react javascript,18,2
+frontend developer react javascript,19,0
+frontend developer react javascript,20,0
+frontend developer react javascript,21,0
+frontend developer react javascript,22,0
+frontend developer react javascript,23,1
+frontend developer react javascript,24,0
+frontend developer react javascript,25,0
+frontend developer react javascript,26,2
+frontend developer react javascript,27,0
+frontend developer react javascript,28,0
+frontend developer react javascript,29,0
+frontend developer react javascript,30,0
+frontend developer react javascript,31,1
+frontend developer react javascript,32,0
+frontend developer react javascript,33,0
+frontend developer react javascript,34,2
+frontend developer react javascript,35,0
+frontend developer react javascript,36,0
+frontend developer react javascript,37,0
+frontend developer react javascript,38,0
+frontend developer react javascript,39,1
+java backend spring microservices,0,1
+java backend spring microservices,1,0
+java backend spring microservices,2,0
+java backend spring microservices,3,2
+java backend spring microservices,4,0
+java backend spring microservices,5,0
+java backend spring microservices,6,0
+java backend spring microservices,7,0
+java backend spring microservices,8,1
+java backend spring microservices,9,0
+java backend spring microservices,10,0
+java backend spring microservices,11,2
+java backend spring microservices,12,0
+java backend spring microservices,13,0
+java backend spring microservices,14,0
+java backend spring microservices,15,0
+java backend spring microservices,16,1
+java backend spring microservices,17,0
+java backend spring microservices,18,0
+java backend spring microservices,19,2
+java backend spring microservices,20,0
+java backend spring microservices,21,0
+java backend spring microservices,22,0
+java backend spring microservices,23,0
+java backend spring microservices,24,1
+java backend spring microservices,25,0
+java backend spring microservices,26,0
+java backend spring microservices,27,2
+java backend spring microservices,28,0
+java backend spring microservices,29,0
+java backend spring microservices,30,0
+java backend spring microservices,31,0
+java backend spring microservices,32,1
+java backend spring microservices,33,0
+java backend spring microservices,34,0
+java backend spring microservices,35,2
+java backend spring microservices,36,0
+java backend spring microservices,37,0
+java backend spring microservices,38,0
+java backend spring microservices,39,0
+devops engineer kubernetes aws,0,0
+devops engineer kubernetes aws,1,0
+devops engineer kubernetes aws,2,0
+devops engineer kubernetes aws,3,1
+devops engineer kubernetes aws,4,2
+devops engineer kubernetes aws,5,0
+devops engineer kubernetes aws,6,0
+devops engineer kubernetes aws,7,0
+devops engineer kubernetes aws,8,0
+devops engineer kubernetes aws,9,0
+devops engineer kubernetes aws,10,0
+devops engineer kubernetes aws,11,1
+devops engineer kubernetes aws,12,2
+devops engineer kubernetes aws,13,0
+devops engineer kubernetes aws,14,0
+devops engineer kubernetes aws,15,0
+devops engineer kubernetes aws,16,0
+devops engineer kubernetes aws,17,0
+devops engineer kubernetes aws,18,0
+devops engineer kubernetes aws,19,1
+devops engineer kubernetes aws,20,2
+devops engineer kubernetes aws,21,0
+devops engineer kubernetes aws,22,0
+devops engineer kubernetes aws,23,0
+devops engineer kubernetes aws,24,0
+devops engineer kubernetes aws,25,0
+devops engineer kubernetes aws,26,0
+devops engineer kubernetes aws,27,1
+devops engineer kubernetes aws,28,2
+devops engineer kubernetes aws,29,0
+devops engineer kubernetes aws,30,0
+devops engineer kubernetes aws,31,0
+devops engineer kubernetes aws,32,0
+devops engineer kubernetes aws,33,0
+devops engineer kubernetes aws,34,0
+devops engineer kubernetes aws,35,1
+devops engineer kubernetes aws,36,2
+devops engineer kubernetes aws,37,0
+devops engineer kubernetes aws,38,0
+devops engineer kubernetes aws,39,0
+data analyst sql power bi,0,0
+data analyst sql power bi,1,1
+data analyst sql power bi,2,0
+data analyst sql power bi,3,0
+data analyst sql power bi,4,0
+data analyst sql power bi,5,2
+data analyst sql power bi,6,0
+data analyst sql power bi,7,0
+data analyst sql power bi,8,0
+data analyst sql power bi,9,1
+data analyst sql power bi,10,0
+data analyst sql power bi,11,0
+data analyst sql power bi,12,0
+data analyst sql power bi,13,2
+data analyst sql power bi,14,0
+data analyst sql power bi,15,0
+data analyst sql power bi,16,0
+data analyst sql power bi,17,1
+data analyst sql power bi,18,0
+data analyst sql power bi,19,0
+data analyst sql power bi,20,0
+data analyst sql power bi,21,2
+data analyst sql power bi,22,0
+data analyst sql power bi,23,0
+data analyst sql power bi,24,0
+data analyst sql power bi,25,1
+data analyst sql power bi,26,0
+data analyst sql power bi,27,0
+data analyst sql power bi,28,0
+data analyst sql power bi,29,2
+data analyst sql power bi,30,0
+data analyst sql power bi,31,0
+data analyst sql power bi,32,0
+data analyst sql power bi,33,1
+data analyst sql power bi,34,0
+data analyst sql power bi,35,0
+data analyst sql power bi,36,0
+data analyst sql power bi,37,2
+data analyst sql power bi,38,0
+data analyst sql power bi,39,0
+qa automation selenium testing,0,0
+qa automation selenium testing,1,0
+qa automation selenium testing,2,0
+qa automation selenium testing,3,0
+qa automation selenium testing,4,0
+qa automation selenium testing,5,0
+qa automation selenium testing,6,2
+qa automation selenium testing,7,0
+qa automation selenium testing,8,0
+qa automation selenium testing,9,0
+qa automation selenium testing,10,0
+qa automation selenium testing,11,0
+qa automation selenium testing,12,0
+qa automation selenium testing,13,0
+qa automation selenium testing,14,2
+qa automation selenium testing,15,0
+qa automation selenium testing,16,0
+qa automation selenium testing,17,0
+qa automation selenium testing,18,0
+qa automation selenium testing,19,0
+qa automation selenium testing,20,0
+qa automation selenium testing,21,0
+qa automation selenium testing,22,2
+qa automation selenium testing,23,0
+qa automation selenium testing,24,0
+qa automation selenium testing,25,0
+qa automation selenium testing,26,0
+qa automation selenium testing,27,0
+qa automation selenium testing,28,0
+qa automation selenium testing,29,0
+qa automation selenium testing,30,2
+qa automation selenium testing,31,0
+qa automation selenium testing,32,0
+qa automation selenium testing,33,0
+qa automation selenium testing,34,0
+qa automation selenium testing,35,0
+qa automation selenium testing,36,0
+qa automation selenium testing,37,0
+qa automation selenium testing,38,2
+qa automation selenium testing,39,0
+ux designer figma prototyping,0,0
+ux designer figma prototyping,1,0
+ux designer figma prototyping,2,1
+ux designer figma prototyping,3,0
+ux designer figma prototyping,4,0
+ux designer figma prototyping,5,0
+ux designer figma prototyping,6,0
+ux designer figma prototyping,7,2
+ux designer figma prototyping,8,0
+ux designer figma prototyping,9,0
+ux designer figma prototyping,10,1
+ux designer figma prototyping,11,0
+ux designer figma prototyping,12,0
+ux designer figma prototyping,13,0
+ux designer figma prototyping,14,0
+ux designer figma prototyping,15,2
+ux designer figma prototyping,16,0
+ux designer figma prototyping,17,0
+ux designer figma prototyping,18,1
+ux designer figma prototyping,19,0
+ux designer figma prototyping,20,0
+ux designer figma prototyping,21,0
+ux designer figma prototyping,22,0
+ux designer figma prototyping,23,2
+ux designer figma prototyping,24,0
+ux designer figma prototyping,25,0
+ux designer figma prototyping,26,1
+ux designer figma prototyping,27,0
+ux designer figma prototyping,28,0
+ux designer figma prototyping,29,0
+ux designer figma prototyping,30,0
+ux designer figma prototyping,31,2
+ux designer figma prototyping,32,0
+ux designer figma prototyping,33,0
+ux designer figma prototyping,34,1
+ux designer figma prototyping,35,0
+ux designer figma prototyping,36,0
+ux designer figma prototyping,37,0
+ux designer figma prototyping,38,0
+ux designer figma prototyping,39,2
+cloud engineer docker terraform,0,0
+cloud engineer docker terraform,1,0
+cloud engineer docker terraform,2,0
+cloud engineer docker terraform,3,0
+cloud engineer docker terraform,4,2
+cloud engineer docker terraform,5,0
+cloud engineer docker terraform,6,0
+cloud engineer docker terraform,7,0
+cloud engineer docker terraform,8,0
+cloud engineer docker terraform,9,0
+cloud engineer docker terraform,10,0
+cloud engineer docker terraform,11,0
+cloud engineer docker terraform,12,2
+cloud engineer docker terraform,13,0
+cloud engineer docker terraform,14,0
+cloud engineer docker terraform,15,0
+cloud engineer docker terraform,16,0
+cloud engineer docker terraform,17,0
+cloud engineer docker terraform,18,0
+cloud engineer docker terraform,19,0
+cloud engineer docker terraform,20,2
+cloud engineer docker terraform,21,0
+cloud engineer docker terraform,22,0
+cloud engineer docker terraform,23,0
+cloud engineer docker terraform,24,0
+cloud engineer docker terraform,25,0
+cloud engineer docker terraform,26,0
+cloud engineer docker terraform,27,0
+cloud engineer docker terraform,28,2
+cloud engineer docker terraform,29,0
+cloud engineer docker terraform,30,0
+cloud engineer docker terraform,31,0
+cloud engineer docker terraform,32,0
+cloud engineer docker terraform,33,0
+cloud engineer docker terraform,34,0
+cloud engineer docker terraform,35,0
+cloud engineer docker terraform,36,2
+cloud engineer docker terraform,37,0
+cloud engineer docker terraform,38,0
+cloud engineer docker terraform,39,0
+machine learning engineer tensorflow python,0,1
+machine learning engineer tensorflow python,1,2
+machine learning engineer tensorflow python,2,0
+machine learning engineer tensorflow python,3,0
+machine learning engineer tensorflow python,4,0
+machine learning engineer tensorflow python,5,0
+machine learning engineer tensorflow python,6,0
+machine learning engineer tensorflow python,7,0
+machine learning engineer tensorflow python,8,1
+machine learning engineer tensorflow python,9,2
+machine learning engineer tensorflow python,10,0
+machine learning engineer tensorflow python,11,0
+machine learning engineer tensorflow python,12,0
+machine learning engineer tensorflow python,13,0
+machine learning engineer tensorflow python,14,0
+machine learning engineer tensorflow python,15,0
+machine learning engineer tensorflow python,16,1
+machine learning engineer tensorflow python,17,2
+machine learning engineer tensorflow python,18,0
+machine learning engineer tensorflow python,19,0
+machine learning engineer tensorflow python,20,0
+machine learning engineer tensorflow python,21,0
+machine learning engineer tensorflow python,22,0
+machine learning engineer tensorflow python,23,0
+machine learning engineer tensorflow python,24,1
+machine learning engineer tensorflow python,25,2
+machine learning engineer tensorflow python,26,0
+machine learning engineer tensorflow python,27,0
+machine learning engineer tensorflow python,28,0
+machine learning engineer tensorflow python,29,0
+machine learning engineer tensorflow python,30,0
+machine learning engineer tensorflow python,31,0
+machine learning engineer tensorflow python,32,1
+machine learning engineer tensorflow python,33,2
+machine learning engineer tensorflow python,34,0
+machine learning engineer tensorflow python,35,0
+machine learning engineer tensorflow python,36,0
+machine learning engineer tensorflow python,37,0
+machine learning engineer tensorflow python,38,0
+machine learning engineer tensorflow python,39,0

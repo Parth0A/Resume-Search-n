@@ -1,4 +1,10 @@
-"""Generate data/sample_resumes.csv: 40 synthetic, mixed-case resumes (no real people)."""
+"""Generate synthetic sample data (no real people).
+
+    python scripts/make_sample_data.py data/sample_resumes.csv data/sample_relevance.csv
+
+Writes 40 mixed-case resumes and, optionally, graded relevance labels for scripts/evaluate.py.
+The random seed is fixed, so the output is the same every time.
+"""
 
 import csv
 import random
@@ -39,16 +45,40 @@ def resume(name: str, role: str, index: int) -> str:
     return f"{name} - {contact}. {body}"
 
 
-def main(path: str) -> None:
+QUERIES = {
+    "python developer django api": {"Python Developer": 2, "Data Scientist": 1, "DevOps Engineer": 1},
+    "data scientist machine learning": {"Data Scientist": 2, "Data Analyst": 1, "Python Developer": 1},
+    "frontend developer react javascript": {"Frontend Developer": 2, "UI / UX Designer": 1},
+    "java backend spring microservices": {"Java Developer": 2, "Python Developer": 1},
+    "devops engineer kubernetes aws": {"DevOps Engineer": 2, "Java Developer": 1},
+    "data analyst sql power bi": {"Data Analyst": 2, "Data Scientist": 1},
+    "qa automation selenium testing": {"QA / Test Engineer": 2},
+    "ux designer figma prototyping": {"UI / UX Designer": 2, "Frontend Developer": 1},
+    "cloud engineer docker terraform": {"DevOps Engineer": 2},
+    "machine learning engineer tensorflow python": {"Data Scientist": 2, "Python Developer": 1},
+}
+"""Synthetic relevance judgements: query -> category -> grade (other categories are 0)."""
+
+
+def main(path: str, labels_path: str | None = None) -> None:
     roles = list(ROLES)
+    categories: list[str] = []
     with open(path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["Name", "Category", "Resume_str"])
         for index in range(40):
             name = f"{FIRST[index % len(FIRST)]} {LAST[(index * 3) % len(LAST)]}"
             role = roles[index % len(roles)]
+            categories.append(role)
             writer.writerow([name, role, resume(name, role, index)])
+    if labels_path:
+        with open(labels_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["query", "resume_id", "grade"])
+            for query, grades in QUERIES.items():
+                for resume_id, category in enumerate(categories):
+                    writer.writerow([query, resume_id, grades.get(category, 0)])
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)

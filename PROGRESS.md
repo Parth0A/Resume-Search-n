@@ -69,7 +69,7 @@
 - [x] d. Paste job description
 - [x] e. PDF/DOCX/TXT upload, short-file warning
 - [x] f. Blind screening
-- [ ] g. scripts/evaluate.py
+- [x] g. scripts/evaluate.py
 - [ ] h. Roles and saved shortlists
 - [ ] i. Optional hybrid ranking
 

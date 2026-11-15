@@ -115,6 +115,15 @@ def _query_vector(index: SearchIndex, search_query: str) -> Any:
     return index.vectorizer.transform([search_query])
 
 
+def score_all(index: SearchIndex, search_query: str) -> Any:
+    """Return the TF-IDF cosine score of every resume as a NumPy array (zeros if nothing is indexed)."""
+    import numpy as np
+
+    if index.matrix is None:
+        return np.zeros(index.size)
+    return np.asarray((index.matrix @ _query_vector(index, search_query).T).todense()).ravel()
+
+
 def rank(
     index: SearchIndex,
     search_query: str,
@@ -143,7 +152,7 @@ def _rank_with_count(
         return [], 0
     import numpy as np
 
-    scores = np.asarray((index.matrix @ _query_vector(index, search_query).T).todense()).ravel()
+    scores = score_all(index, search_query)
     if "usable" not in index.extras:
         index.extras["usable"] = np.array([has_words(text) for text in index.texts], dtype=bool)
     keep = index.extras["usable"]
