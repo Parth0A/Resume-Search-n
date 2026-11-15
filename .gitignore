@@ -26,10 +26,12 @@ env/
 # Data (only the synthetic sample is committed)
 *.csv
 !data/sample_resumes.csv
+!data/sample_relevance.csv
 !tests/fixtures/*.csv
 data/*
 !data/README.md
 !data/sample_resumes.csv
+!data/sample_relevance.csv
 *.pdf
 *.docx
 

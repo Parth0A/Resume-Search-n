@@ -53,14 +53,14 @@
 - [x] .github/workflows/ci.yml (3.10–3.12) — written, not run (no GitHub remote here)
 
 ## Task 6 — Open-source files
-- [ ] README.md (logo, all sections)
-- [ ] README.md per folder
-- [ ] docs/architecture.md with Mermaid
-- [ ] LICENSE, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, CHANGELOG.md
-- [ ] .env.example, requirements.txt, requirements-dev.txt, pyproject.toml
-- [ ] Issue and PR templates
-- [ ] Deployment notes and How to cite
-- [ ] data/sample_resumes.csv (30–50 synthetic), Dockerfile non-root
+- [x] README.md (logo, all sections) — written for the finished v1.0, so it already lists the Task 7 features
+- [x] README.md per folder (resume_search, ui, tests, assets, data, docs, scripts)
+- [x] docs/architecture.md with Mermaid
+- [x] LICENSE, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md (short original text linking the Contributor Covenant 2.1), CHANGELOG.md
+- [x] .env.example, requirements.txt, requirements-dev.txt, pyproject.toml
+- [x] Issue and PR templates
+- [x] Deployment notes and How to cite
+- [x] data/sample_resumes.csv (40 synthetic), Dockerfile non-root (written; Docker is not installed here, so the image was not built)
 
 ## Task 7 — Features
 - [ ] a. Skill aliases and boundary rules
