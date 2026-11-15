@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Data (only the synthetic sample is committed)
+*.csv
+!data/sample_resumes.csv
+!tests/fixtures/*.csv
+data/*
+!data/README.md
+!data/sample_resumes.csv
+*.pdf
+*.docx
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+
+# OS / editor
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
