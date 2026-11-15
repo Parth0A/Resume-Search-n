@@ -46,11 +46,11 @@
 - [x] .gitignore complete; git history searched for secrets (none found)
 
 ## Task 5 — Tests and quality
-- [ ] Tests per core module (dataset, extraction, ranking, export, auth, ai_features mocked)
-- [ ] Coverage >= 85 %; ruff clean
-- [ ] Type hints and docstrings on public functions
-- [ ] .pre-commit-config.yaml
-- [ ] .github/workflows/ci.yml (3.10–3.12)
+- [x] Tests per core module (text, dataset, extraction, ranking, export, auth, shortlists/db, ai_features mocked) + app smoke tests
+- [x] Coverage >= 85 % (98.6 %); ruff clean
+- [x] Type hints and docstrings on public functions
+- [x] .pre-commit-config.yaml
+- [x] .github/workflows/ci.yml (3.10–3.12) — written, not run (no GitHub remote here)
 
 ## Task 6 — Open-source files
 - [ ] README.md (logo, all sections)

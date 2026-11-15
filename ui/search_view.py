@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import streamlit as st
 
@@ -71,7 +72,16 @@ def render_search_card() -> None:
                     blind, include_unknown)
 
 
-def _run_search(dataset, job_title, skills, job_description, min_years, limit, blind, include_unknown) -> None:
+def _run_search(
+    dataset: dict[str, Any],
+    job_title: str,
+    skills: list[str],
+    job_description: str,
+    min_years: int | None,
+    limit: int,
+    blind: bool,
+    include_unknown: bool,
+) -> None:
     try:
         with st.spinner("Ranking candidates…"):
             results = search_index(
