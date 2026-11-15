@@ -219,6 +219,17 @@ class TestExplainScore:
     def test_no_index(self):
         assert explain_score(build_index(["!!!"]), "python", 0) == []
 
+    def test_top_five_terms_sorted_by_contribution(self):
+        resume = "python django flask sql docker kubernetes aws linux git python python"
+        index = build_index([resume, "chef"])
+        query = "python django flask sql docker kubernetes aws linux git"
+        terms = explain_score(index, query, 0)
+        assert len(terms) == 5
+        values = [value for _, value in terms]
+        assert values == sorted(values, reverse=True)
+        assert terms[0][0] == "python"
+        assert search_index(index, "python developer", ["docker"], None, 1)["results"][0]["top_terms"]
+
 
 def test_search_index_reuses_prepared_index():
     index = build_index(["Python developer", "Chef"], ["Eng", "Food"], ["Ann", "Bo"])
