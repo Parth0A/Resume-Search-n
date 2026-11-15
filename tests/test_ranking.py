@@ -8,6 +8,7 @@ import pytest
 from resume_search.ranking import (
     build_index,
     build_search_query,
+    explain_score,
     rank,
     search_index,
     search_resumes,
@@ -182,6 +183,41 @@ class TestMixedCaseRegression:
         top = results["results"][0]
         assert top["original_index"] == 1
         assert top["score"] > 0.3
+
+
+class TestSearchOptions:
+    def test_job_description_alone_is_enough(self):
+        index = build_index(["Chef cooking Italian pasta", "Python developer building APIs"])
+        results = search_index(index, "", [], None, 5, job_description="We need a Python API developer.")
+        assert results["results"][0]["original_index"] == 1
+
+    def test_job_description_extends_title(self):
+        query = build_search_query("Engineer", ["SQL"], "Build Kafka pipelines")
+        assert query.startswith("engineer sql")
+        assert "kafka" in query
+
+    def test_include_unknown_experience(self):
+        index = build_index(["Engineer resume", "Engineer with 4 years experience", "Engineer with 1 years experience"])
+        strict = search_index(index, "engineer", [], 3, 5)
+        relaxed = search_index(index, "engineer", [], 3, 5, include_unknown_experience=True)
+        assert [r["original_index"] for r in strict["results"]] == [1]
+        assert sorted(r["original_index"] for r in relaxed["results"]) == [0, 1]
+
+    def test_matched_candidates_counts_positive_scores(self):
+        index = build_index(["Python developer", "Chef", "Python tester"])
+        assert search_index(index, "python", [], None, 1)["matched_candidates"] == 2
+
+
+class TestExplainScore:
+    def test_contributions_sum_to_score(self):
+        index = build_index(["Python developer with Django and SQL", "Chef"])
+        result = search_index(index, "Python developer", ["SQL"], None, 1)["results"][0]
+        terms = dict(result["top_terms"])
+        assert set(terms) <= {"python", "developer", "sql"}
+        assert abs(sum(terms.values()) - result["score"]) < 1e-9
+
+    def test_no_index(self):
+        assert explain_score(build_index(["!!!"]), "python", 0) == []
 
 
 def test_search_index_reuses_prepared_index():

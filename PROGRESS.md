@@ -13,7 +13,7 @@
 - [x] resume_search/ package (config, text, dataset, extraction, ranking, export, auth, ai_features), no streamlit import
 - [x] ui/ folder with theme.py + the single styles.css (all inline CSS merged). The remaining ui/ screen modules
       are created in Task 3 together with the redesign, so the old screens are not written twice (see notes).
-- [ ] app.py thin entry point (completed in Task 3 with the ui/ screens)
+- [x] app.py thin entry point (completed in Task 3 with the ui/ screens)
 - [x] assets/, tests/ per module, data/, docs/, scripts/
 - [x] No duplicate code (one normaliser, one CSV reader, one constants file, one CSS file)
 - [x] ruff check . clean; vulture clean
@@ -21,15 +21,15 @@
 - [x] Caches/stray files removed; old tests kept (split into test_text/dataset/extraction/ranking/export) and passing
 
 ## Task 3 — UI design
-- [ ] 3.1 Design tokens, fonts, .streamlit/config.toml, hide menu/footer/deploy
-- [ ] 3.2 Components (buttons, chips, relevance bar, avatar, card header, escaping)
-- [ ] 3.3 Logo and branding assets, favicon, page config
-- [ ] 3.4 Login page
-- [ ] 3.5 Sidebar navigation and profile card
-- [ ] 3.6 Header, step tracker, workspace cards, results, other pages
-- [ ] 3.7 Speed and loading
-- [ ] 3.8 Small screens and accessibility
-- [ ] 3.9 Differences from the design listed below
+- [x] 3.1 Design tokens, fonts, .streamlit/config.toml, hide menu/footer/deploy
+- [x] 3.2 Components (buttons, chips, relevance bar, avatar, card header, escaping)
+- [x] 3.3 Logo and branding assets, favicon, page config
+- [x] 3.4 Login page
+- [x] 3.5 Sidebar navigation and profile card
+- [x] 3.6 Header, step tracker, workspace cards, results, other pages
+- [x] 3.7 Speed and loading (index built once per file, query-only searches, session-state caching, lazy imports)
+- [x] 3.8 Small screens and accessibility
+- [x] 3.9 Differences from the design listed below
 
 ## Task 4 — Security
 - [ ] SECURITY_REVIEW.md written, every finding fixed
@@ -84,4 +84,31 @@
   `docs/design/resume_search_logo_in_app.png` do not exist anywhere on disk, so
   Task 3 follows the written spec only.
 - `assets/` did not exist; only `C:\Parth\resume_search_icon.svg` was provided.
-  The PNG assets are generated from that SVG (user approved).
+  The PNG assets are generated from that SVG (user approved) with headless Chrome + Pillow.
+- Task 2 / Task 3 ordering: the ui/ screen modules were written once, in Task 3, instead of first
+  splitting the old screens and then rewriting them.
+- Some Task 7 plumbing the Task 3 design needs landed in Task 3: score explanation (7c core), job
+  description in the query (7d core), "Include unknown experience" toggle (7b toggle), blind screening
+  of display/export (7f), saved shortlists storage and page (7h recruiter part). Task 7 completes and
+  tests the rest.
+
+### Task 3 — where the UI differs from the written design (Streamlit limits)
+- Ranked table is an interactive `st.dataframe` (row click selects the candidate). Its selected-row
+  style is Streamlit's own, not `#F5F7FF` with a 3px indigo edge; the candidate name and job title are
+  separate columns instead of two lines in one cell; matched skills use the dataframe list style, not
+  green chips; the relevance bar is the dataframe progress column. Chips, bar and colours match the spec
+  in the candidate panel and Profiles tab.
+- The "Export CSV" button sits above the tabs on the right, not inside the tab strip.
+- The search card adds a small "Show" (number of results) select next to minimum experience so the
+  existing results-limit feature keeps working.
+- Toggle help text is a caption under the toggle row (tooltips made the labels too narrow).
+- Upload progress uses `st.status` while running; once finished a static list with green ticks and
+  timings is shown. The first upload's "Building search index" time includes the one-off scikit-learn
+  import (~3 s); later uploads are fast.
+- The sidebar profile card is pushed to the bottom with CSS (`margin-top: auto`); on very short
+  windows it simply follows the menu.
+- Account type is chosen only when creating an account (sign-in uses the stored role) instead of on
+  both forms.
+- Visual check done in the in-app browser at 1440 px (login, all five pages, search, shortlist) and at
+  375 px for the login page. The signed-in pages at phone width were not screenshot-checked because
+  the browser pane was closed during testing.

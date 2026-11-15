@@ -6,14 +6,13 @@ only transforms the query (:func:`rank`), which keeps searches fast.
 
 from __future__ import annotations
 
-import re
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
 
-from resume_search.config import CATEGORY_COLUMN, NAME_COLUMN
+from resume_search.config import CATEGORY_COLUMN, MAX_JOB_DESCRIPTION_CHARS, NAME_COLUMN, TOP_TERMS
 from resume_search.dataset import find_resume_column
 from resume_search.extraction import extract_experience, extract_skills
 from resume_search.text import has_words, normalize_text
@@ -51,10 +50,21 @@ def validate_job_title(job_title: str) -> str:
     return normalized
 
 
-def build_search_query(job_title: str, skills: list[str]) -> str:
-    """Combine the job title and skills into one normalised query string."""
-    pieces = [validate_job_title(job_title)]
+def build_search_query(job_title: str, skills: list[str], job_description: str = "") -> str:
+    """Combine the job title, skills and optional job description into one query.
+
+    A job title is required unless a job description with words is supplied.
+    """
+    description = normalize_text(job_description[:MAX_JOB_DESCRIPTION_CHARS])
+    if has_words(description) and not normalize_text(job_title):
+        pieces = []
+    elif not normalize_text(job_title):
+        raise ValueError("Enter a job title or paste a job description.")
+    else:
+        pieces = [validate_job_title(job_title)]
     pieces.extend(normalize_text(skill) for skill in skills)
+    if has_words(description):
+        pieces.append(description)
     return " ".join(piece for piece in pieces if piece)
 
 
@@ -100,41 +110,90 @@ def build_index_from_dataframe(df: pd.DataFrame) -> SearchIndex:
     return build_index(texts, categories, names)
 
 
+def _query_vector(index: SearchIndex, search_query: str) -> Any:
+    return index.vectorizer.transform([search_query])
+
+
 def rank(
     index: SearchIndex,
     search_query: str,
     skills: list[str],
     min_experience: int | None,
     limit: int,
+    include_unknown_experience: bool = False,
 ) -> list[dict[str, Any]]:
-    """Score every resume against the query and return the top ``limit`` rows."""
-    if index.matrix is None or not index.texts:
-        return []
-    from sklearn.metrics.pairwise import linear_kernel
+    """Score every resume against the query and return the top ``limit`` rows.
 
-    query_vector = index.vectorizer.transform([search_query])
-    scores = linear_kernel(query_vector, index.matrix).ravel()
-    rows: list[dict[str, Any]] = []
-    for position, score in enumerate(scores):
-        text = index.texts[position]
-        if not re.search(r"\w", text):
-            continue
-        experience = index.experience[position]
-        if min_experience is not None and (experience is None or experience < min_experience):
-            continue
-        matched = extract_skills(text, skills) if skills else []
-        rows.append({
-            "original_index": position,
-            "name": index.names[position],
-            "resume_text": text,
-            "category": index.categories[position],
-            "score": float(score),
-            "experience": experience,
-            "matched_skills": matched,
-            "missing_skills": [skill for skill in skills if skill not in matched],
-        })
-    rows.sort(key=lambda row: (-row["score"], row["original_index"]))
-    return rows[:limit]
+    Candidates below ``min_experience`` are dropped. Candidates whose experience
+    was not detected are kept only when ``include_unknown_experience`` is True.
+    """
+    return _rank_with_count(index, search_query, skills, min_experience, limit, include_unknown_experience)[0]
+
+
+def _rank_with_count(
+    index: SearchIndex,
+    search_query: str,
+    skills: list[str],
+    min_experience: int | None,
+    limit: int,
+    include_unknown_experience: bool,
+) -> tuple[list[dict[str, Any]], int]:
+    if index.matrix is None or not index.texts:
+        return [], 0
+    import numpy as np
+
+    scores = np.asarray((index.matrix @ _query_vector(index, search_query).T).todense()).ravel()
+    if "usable" not in index.extras:
+        index.extras["usable"] = np.array([has_words(text) for text in index.texts], dtype=bool)
+    keep = index.extras["usable"]
+    if min_experience is not None:
+        experience_ok = np.array([
+            (years is None and include_unknown_experience) or (years is not None and years >= min_experience)
+            for years in index.experience
+        ], dtype=bool)
+        keep = keep & experience_ok
+    candidates = np.flatnonzero(keep)
+    matched_count = int(np.count_nonzero(scores[candidates] > 0))
+    # Stable sort: highest score first, ties keep the original order.
+    order = candidates[np.argsort(-scores[candidates], kind="stable")][:limit]
+    rows = [_result_row(index, int(position), float(scores[position]), skills) for position in order]
+    return rows, matched_count
+
+
+def _result_row(index: SearchIndex, position: int, score: float, skills: list[str]) -> dict[str, Any]:
+    text = index.texts[position]
+    matched = extract_skills(text, skills) if skills else []
+    return {
+        "original_index": position,
+        "name": index.names[position],
+        "resume_text": text,
+        "category": index.categories[position],
+        "score": score,
+        "experience": index.experience[position],
+        "matched_skills": matched,
+        "missing_skills": [skill for skill in skills if skill not in matched],
+    }
+
+
+def explain_score(
+    index: SearchIndex, search_query: str, position: int, top_n: int = TOP_TERMS
+) -> list[tuple[str, float]]:
+    """Return the terms that contributed most to one resume's score.
+
+    Cosine similarity of two L2-normalised TF-IDF vectors is the sum of the
+    per-term products, so each product is that term's exact contribution.
+    """
+    if index.matrix is None:
+        return []
+    contributions = _query_vector(index, search_query).multiply(index.matrix[position]).tocoo()
+    if "terms" not in index.extras:
+        index.extras["terms"] = index.vectorizer.get_feature_names_out()
+    terms = index.extras["terms"]
+    pairs = sorted(
+        ((str(terms[column]), float(value)) for column, value in zip(contributions.col, contributions.data, strict=True)),
+        key=lambda pair: (-pair[1], pair[0]),
+    )
+    return [pair for pair in pairs if pair[1] > 0][:top_n]
 
 
 def search_index(
@@ -143,17 +202,25 @@ def search_index(
     skills: list[str],
     min_experience: int | None,
     limit: int,
+    *,
+    job_description: str = "",
+    include_unknown_experience: bool = False,
 ) -> dict[str, Any]:
-    """Run one search against a prepared index."""
+    """Run one search against a prepared index (only the query is transformed)."""
     if limit < 1:
         raise ValueError("Result limit must be at least 1.")
     started = time.perf_counter()
-    unique_skills = list(dict.fromkeys(skills))
-    search_query = build_search_query(job_title, unique_skills)
-    results = rank(index, search_query, unique_skills, min_experience, limit)
+    unique_skills = list(dict.fromkeys(skill.strip() for skill in skills if skill.strip()))
+    search_query = build_search_query(job_title, unique_skills, job_description)
+    results, matched_count = _rank_with_count(
+        index, search_query, unique_skills, min_experience, limit, include_unknown_experience
+    )
+    for row in results:
+        row["top_terms"] = explain_score(index, search_query, row["original_index"])
     return {
         "results": results,
         "total_candidates": index.size,
+        "matched_candidates": matched_count,
         "search_query": search_query,
         "skills_requested": unique_skills,
         "min_experience": min_experience,
@@ -167,8 +234,9 @@ def search_resumes(
     skills: list[str],
     min_experience: int | None,
     limit: int,
+    **options: Any,
 ) -> dict[str, Any]:
     """Build an index for ``df`` and run one search (convenience wrapper)."""
     if limit < 1:
         raise ValueError("Result limit must be at least 1.")
-    return search_index(build_index_from_dataframe(df), job_title, skills, min_experience, limit)
+    return search_index(build_index_from_dataframe(df), job_title, skills, min_experience, limit, **options)

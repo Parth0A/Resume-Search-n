@@ -21,12 +21,12 @@ class GeminiConfigurationError(RuntimeError):
     """Raised when the Gemini API key has not been configured."""
 
 
-def _client() -> Any:
+def _client(api_key: str | None = None) -> Any:
     from dotenv import load_dotenv
     from google import genai
 
     load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    api_key = (api_key or os.getenv("GEMINI_API_KEY", "")).strip()
     if not api_key:
         raise GeminiConfigurationError(
             "Gemini is not configured. Add GEMINI_API_KEY=your_key to a local .env file. "
@@ -35,11 +35,11 @@ def _client() -> Any:
     return genai.Client(api_key=api_key)
 
 
-def _generate_json(prompt: str) -> dict[str, Any]:
+def _generate_json(prompt: str, api_key: str | None = None) -> dict[str, Any]:
     """Make one bounded Gemini request and parse its JSON response."""
     from google.genai import types
 
-    response = _client().models.generate_content(
+    response = _client(api_key).models.generate_content(
         model=os.getenv("GEMINI_MODEL", GEMINI_DEFAULT_MODEL),
         contents=prompt,
         config=types.GenerateContentConfig(
@@ -61,7 +61,7 @@ def _generate_json(prompt: str) -> dict[str, Any]:
     return data
 
 
-def analyze_resume(resume_text: str) -> dict[str, Any]:
+def analyze_resume(resume_text: str, api_key: str | None = None) -> dict[str, Any]:
     """Extract an evidence-based structured profile from one resume."""
     resume = resume_text.strip()[:MAX_RESUME_CHARS]
     if not resume:
@@ -86,10 +86,12 @@ RESUME TEXT:
 {resume}
 </resume>
 """
-    return _generate_json(prompt)
+    return _generate_json(prompt, api_key)
 
 
-def analyze_skill_gap(resume_text: str, job_description: str) -> dict[str, Any]:
+def analyze_skill_gap(
+    resume_text: str, job_description: str, api_key: str | None = None
+) -> dict[str, Any]:
     """Compare one resume with a job description, showing evidence and gaps."""
     resume = resume_text.strip()[:MAX_RESUME_CHARS]
     job = job_description.strip()[:MAX_JOB_DESCRIPTION_CHARS]
@@ -118,7 +120,7 @@ JOB DESCRIPTION:
 {job}
 </job_description>
 """
-    return _generate_json(prompt)
+    return _generate_json(prompt, api_key)
 
 
 def generate_job_description(
@@ -127,6 +129,7 @@ def generate_job_description(
     experience_level: str,
     employment_type: str,
     extra_context: str = "",
+    api_key: str | None = None,
 ) -> dict[str, Any]:
     """Draft a structured job description from recruiter-provided requirements."""
     title = job_title.strip()[:160]
@@ -154,4 +157,4 @@ EXPERIENCE LEVEL: {experience_level}
 EMPLOYMENT TYPE: {employment_type}
 ADDITIONAL CONTEXT: {context or "None supplied"}
 """
-    return _generate_json(prompt)
+    return _generate_json(prompt, api_key)

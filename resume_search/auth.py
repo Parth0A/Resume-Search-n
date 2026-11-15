@@ -13,13 +13,16 @@ import sqlite3
 from typing import Any
 
 from resume_search import config
+from resume_search.db import connect as _connect
 
 
-def _connect() -> sqlite3.Connection:
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(config.DB_PATH, timeout=10)
-    connection.row_factory = sqlite3.Row
-    return connection
+def get_user(user_id: int) -> dict[str, Any] | None:
+    """Return public account details (no password data) for ``user_id``."""
+    with _connect() as connection:
+        row = connection.execute(
+            "SELECT id, email, role, created_at FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+    return dict(row) if row else None
 
 
 def initialize_auth_db() -> None:
