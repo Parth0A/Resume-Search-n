@@ -15,7 +15,7 @@ import pandas as pd
 from resume_search.config import CATEGORY_COLUMN, MAX_JOB_DESCRIPTION_CHARS, NAME_COLUMN, TOP_TERMS
 from resume_search.dataset import find_resume_column
 from resume_search.extraction import extract_experience, extract_skills
-from resume_search.text import has_words, normalize_text
+from resume_search.text import has_words, normalize_text, word_count
 
 
 @dataclass
@@ -235,6 +235,35 @@ def search_index(
         "skills_requested": unique_skills,
         "min_experience": min_experience,
         "search_seconds": time.perf_counter() - started,
+    }
+
+
+def match_resume_to_job(resume_text: str, job_description: str, skills: list[str] | None = None) -> dict[str, Any]:
+    """Score one resume against one job description (the job-seeker check).
+
+    Returns:
+        ``score``, ``matched_skills``, ``missing_skills``, ``top_terms``,
+        ``experience`` and ``word_count``.
+
+    Raises:
+        ValueError: when the resume or the job description has no words.
+    """
+    if not has_words(resume_text):
+        raise ValueError("Add your resume (upload a file or paste the text) first.")
+    if not has_words(job_description):
+        raise ValueError("Paste the job description you want to compare against.")
+    requested = list(dict.fromkeys(skill.strip() for skill in (skills or []) if skill.strip()))
+    index = build_index([resume_text])
+    query = build_search_query("", requested, job_description)
+    score = float(score_all(index, query)[0])
+    matched = extract_skills(resume_text, requested)
+    return {
+        "score": score,
+        "matched_skills": matched,
+        "missing_skills": [skill for skill in requested if skill not in matched],
+        "top_terms": explain_score(index, query, 0),
+        "experience": index.experience[0],
+        "word_count": word_count(resume_text),
     }
 
 

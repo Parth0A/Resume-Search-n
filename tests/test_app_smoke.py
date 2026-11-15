@@ -43,3 +43,28 @@ def test_signed_in_pages_render(temp_db):
         app.session_state["rs_page"] = page
         app.run()
         assert not app.exception, page
+
+
+def test_job_seeker_flow(temp_db):
+    from resume_search.auth import authenticate_user, register_user
+
+    register_user("seeker@example.com", "Seeker-Test-Pass-1", "Job seeker", "Sam Seeker")
+    user = authenticate_user("seeker@example.com", "Seeker-Test-Pass-1")
+    app = AppTest.from_file(APP, default_timeout=60)
+    app.session_state["rs_user"] = user
+    app.session_state["rs_page"] = "shortlists"  # recruiter-only page: must redirect
+    app.run()
+    assert not app.exception
+    assert app.session_state["rs_page"] == "check"
+    app.text_area(key="rs_my_resume").set_value(
+        "Python developer with 4 years of experience in Django, SQL and Docker.")
+    app.text_area(key="rs_my_job").set_value("We are hiring a Python Django developer who knows Docker.")
+    next(button for button in app.button if button.label == "Check my resume").click()
+    app.run()
+    assert not app.exception
+    result = app.session_state["rs_my_result"]
+    assert result["score"] > 0 and result["experience"] == 4
+    for page in ("ai", "profile", "privacy"):
+        app.session_state["rs_page"] = page
+        app.run()
+        assert not app.exception, page

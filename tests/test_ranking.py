@@ -9,6 +9,7 @@ from resume_search.ranking import (
     build_index,
     build_search_query,
     explain_score,
+    match_resume_to_job,
     rank,
     search_index,
     search_resumes,
@@ -243,6 +244,32 @@ class TestExplainScore:
         assert values == sorted(values, reverse=True)
         assert terms[0][0] == "python"
         assert search_index(index, "python developer", ["docker"], None, 1)["results"][0]["top_terms"]
+
+
+class TestMatchResumeToJob:
+    RESUME = "Backend Python developer. 6 years of experience with Django, PostgreSQL and Docker."
+
+    def test_scores_and_skills(self):
+        result = match_resume_to_job(self.RESUME, "Hiring a Python Django developer", ["Django", "Kubernetes"])
+        assert 0 < result["score"] <= 1
+        assert result["matched_skills"] == ["Django"]
+        assert result["missing_skills"] == ["Kubernetes"]
+        assert result["experience"] == 6
+        assert result["word_count"] == 12
+        assert {term for term, _ in result["top_terms"]} >= {"python", "django"}
+
+    def test_better_job_scores_higher(self):
+        good = match_resume_to_job(self.RESUME, "Python Django developer with Docker")["score"]
+        bad = match_resume_to_job(self.RESUME, "Pastry chef for a busy bakery")["score"]
+        assert good > bad
+
+    @pytest.mark.parametrize(("resume", "job", "message"), [
+        ("", "Python developer", "Add your resume"),
+        ("Python developer", "  ", "Paste the job description"),
+    ])
+    def test_requires_both_texts(self, resume, job, message):
+        with pytest.raises(ValueError, match=message):
+            match_resume_to_job(resume, job)
 
 
 def test_search_index_reuses_prepared_index():

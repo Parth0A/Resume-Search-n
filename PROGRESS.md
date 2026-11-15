@@ -70,7 +70,7 @@
 - [x] e. PDF/DOCX/TXT upload, short-file warning
 - [x] f. Blind screening
 - [x] g. scripts/evaluate.py
-- [ ] h. Roles and saved shortlists
+- [x] h. Roles and saved shortlists
 - [ ] i. Optional hybrid ranking
 
 ## Task 8 â€” Final verification

@@ -28,6 +28,11 @@ _NOTICE = (
 )
 
 
+_NO_RESUME_HINT = (
+    "Recruiters: upload a dataset on Screen candidates. Job seekers: add your resume on Check my resume."
+)
+
+
 def gemini_api_key() -> str | None:
     """Read the Gemini key from Streamlit secrets or the environment (never from user input)."""
     try:
@@ -50,6 +55,9 @@ def _run(key: str, label: str, action: Callable[[], dict[str, Any]]) -> None:
 
 def _resume_choices() -> tuple[list[str], list[str]]:
     """Labels and (redacted) texts of the resumes the user can analyse."""
+    if not state.is_recruiter():
+        own = str(st.session_state.get("rs_my_resume") or "")
+        return (["My resume"], [redact_contact_details(own)]) if own.strip() else ([], [])
     dataset = st.session_state.get(state.DATASET)
     if dataset is None:
         return [], []
@@ -72,7 +80,7 @@ def render_ai_page() -> None:
         profile_tab, gap_tab, jd_tab = st.tabs(["Resume intelligence", "Skill gap analyser", "Job description generator"])
         with profile_tab:
             if not labels:
-                st.info("Upload a dataset on Screen candidates to analyse a resume.")
+                st.info(_NO_RESUME_HINT)
             else:
                 choice = st.selectbox("Resume", range(len(labels)), format_func=labels.__getitem__, key="ai_profile_pick")
                 if st.button("Analyse selected resume", key="ai_profile_run", type="primary"):
@@ -82,7 +90,7 @@ def render_ai_page() -> None:
                     st.json(outputs["profile"])
         with gap_tab:
             if not labels:
-                st.info("Upload a dataset on Screen candidates to compare a resume with a job.")
+                st.info(_NO_RESUME_HINT)
             else:
                 choice = st.selectbox("Resume", range(len(labels)), format_func=labels.__getitem__, key="ai_gap_pick")
                 description = st.text_area("Target job description", height=170, key="ai_gap_description")

@@ -10,6 +10,7 @@ from ui import components, state
 
 _WORKSPACE = (
     (state.PAGE_SCREEN, "Screen candidates"),
+    (state.PAGE_CHECK, "Check my resume"),
     (state.PAGE_SHORTLISTS, "Saved shortlists"),
     (state.PAGE_AI, "AI tools"),
 )
@@ -38,12 +39,15 @@ def render_sidebar() -> None:
             '<div class="rs-side-brand">'
             f'{components.icon(40)}<span class="rs-brand-name">Resume Search</span></div>'
         )
+        allowed = state.allowed_pages(user)
         components.render('<div class="rs-side-label">WORKSPACE</div>')
         for page, label in _WORKSPACE:
-            _nav_item(page, label)
+            if page in allowed:
+                _nav_item(page, label)
         components.render('<div class="rs-side-label">ACCOUNT</div>')
         for page, label in _ACCOUNT:
-            _nav_item(page, label)
+            if page in allowed:
+                _nav_item(page, label)
         with st.container(key="side_profile"):
             components.render(
                 '<div class="rs-profile">'

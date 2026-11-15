@@ -20,6 +20,7 @@ UPLOADER_VERSION = "rs_uploader_version"
 FLASH = "rs_flash"
 
 PAGE_SCREEN = "screen"
+PAGE_CHECK = "check"
 PAGE_SHORTLISTS = "shortlists"
 PAGE_AI = "ai"
 PAGE_PROFILE = "profile"
@@ -78,7 +79,19 @@ def sign_in(user: dict[str, Any]) -> None:
     """Store the signed-in user and open the default page."""
     clear_session()
     st.session_state[USER] = user
-    st.session_state[PAGE] = PAGE_SCREEN
+    st.session_state[PAGE] = home_page(user)
+
+
+def home_page(user: dict[str, Any]) -> str:
+    """Recruiters start on Screen candidates, job seekers on Check my resume."""
+    return PAGE_SCREEN if user["role"] == ROLE_RECRUITER else PAGE_CHECK
+
+
+def allowed_pages(user: dict[str, Any]) -> tuple[str, ...]:
+    """Pages a user may open; each role sees only its own tools."""
+    if user["role"] == ROLE_RECRUITER:
+        return (PAGE_SCREEN, PAGE_SHORTLISTS, PAGE_AI, PAGE_PROFILE, PAGE_PRIVACY)
+    return (PAGE_CHECK, PAGE_AI, PAGE_PROFILE, PAGE_PRIVACY)
 
 
 def clear_session() -> None:
@@ -90,7 +103,8 @@ def clear_session() -> None:
 
 def clear_working_data() -> None:
     """Forget the uploaded dataset, results and AI outputs, but stay signed in."""
-    for key in (DATASET, RESULTS, SELECTED):
+    for key in (DATASET, RESULTS, SELECTED, "rs_my_resume", "rs_my_result", "rs_my_job", "rs_my_skills",
+                "rs_my_resume_file"):
         st.session_state.pop(key, None)
     st.session_state[AI_OUTPUTS] = {}
     st.session_state[UPLOADER_VERSION] = st.session_state.get(UPLOADER_VERSION, 0) + 1

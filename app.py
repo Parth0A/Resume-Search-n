@@ -19,6 +19,7 @@ from ui.theme import apply_theme
 
 _PAGES = {
     state.PAGE_SCREEN: ("Screen candidates", "Upload a dataset, describe the role, review the ranked shortlist"),
+    state.PAGE_CHECK: ("Check my resume", "See how well your resume matches a job description"),
     state.PAGE_SHORTLISTS: ("Saved shortlists", "Candidates you saved for each role"),
     state.PAGE_AI: ("AI tools", "Optional Gemini helpers that run only when you ask"),
     state.PAGE_PROFILE: ("My profile", "Your account details"),
@@ -46,6 +47,10 @@ def _render_page(page: str) -> None:
         with search_col:
             render_search_card()
         render_results_card()
+    elif page == state.PAGE_CHECK:
+        from ui.seeker_view import render_seeker_page
+
+        render_seeker_page()
     elif page == state.PAGE_SHORTLISTS:
         from ui.profile_view import render_shortlists_page
 
@@ -83,9 +88,11 @@ def main() -> None:
     from ui.sidebar import render_sidebar
 
     render_sidebar()
+    user = state.current_user()
     page = st.session_state[state.PAGE]
-    if page not in _PAGES:
-        page = state.PAGE_SCREEN
+    if page not in state.allowed_pages(user):  # each role only reaches its own pages
+        page = state.home_page(user)
+        state.go(page)
     title, subtitle = _PAGES[page]
     render_header(title, subtitle, show_steps=page == state.PAGE_SCREEN)
     message = state.pop_flash()
