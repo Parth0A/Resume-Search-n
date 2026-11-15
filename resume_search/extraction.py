@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from resume_search.config import SKILL_ALIASES
 from resume_search.text import normalize_text
 
 _EXPERIENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -32,8 +33,40 @@ def parse_skills(skills_text: str) -> list[str]:
     return parsed
 
 
+def _alias_groups() -> dict[str, frozenset[str]]:
+    """Map every known spelling to the full set of equivalent spellings."""
+    groups: dict[str, set[str]] = {}
+    for canonical, spellings in SKILL_ALIASES.items():
+        members = {normalize_text(canonical), *(normalize_text(spelling) for spelling in spellings)}
+        merged = set(members)
+        for member in members:
+            merged |= groups.get(member, set())
+        for member in merged:
+            groups[member] = merged
+    return {spelling: frozenset(members) for spelling, members in groups.items()}
+
+
+_ALIASES = _alias_groups()
+
+
+def skill_spellings(skill: str) -> frozenset[str]:
+    """All spellings that count as ``skill`` (itself plus configured aliases)."""
+    normalized = normalize_text(skill)
+    return _ALIASES.get(normalized, frozenset({normalized}))
+
+
+def _skill_pattern(spelling: str) -> re.Pattern[str]:
+    # A letter, digit, "+" or "#" right before or after means a different word:
+    # "c" must not match "c++" / "c#", "java" must not match "javascript",
+    # and "js" must not match the "js" inside "node.js".
+    return re.compile(r"(?<![a-z0-9+#.])" + re.escape(spelling) + r"(?![a-z0-9+#])")
+
+
 def extract_skills(resume_text: str, skills: list[str]) -> list[str]:
-    """Return the requested skills found in the resume, in request order."""
+    """Return the requested skills found in the resume, in request order.
+
+    A skill also matches through its aliases (for example "NodeJS" for "Node.js").
+    """
     resume = normalize_text(resume_text)
     found: list[str] = []
     seen: set[str] = set()
@@ -42,8 +75,7 @@ def extract_skills(resume_text: str, skills: list[str]) -> list[str]:
         if not skill or skill in seen:
             continue
         seen.add(skill)
-        pattern = r"(?<![a-z0-9])" + re.escape(skill) + r"(?![a-z0-9])"
-        if re.search(pattern, resume):
+        if any(_skill_pattern(spelling).search(resume) for spelling in skill_spellings(skill)):
             found.append(raw_skill.strip())
     return found
 
