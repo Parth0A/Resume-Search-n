@@ -103,8 +103,7 @@ def clear_session() -> None:
 
 def clear_working_data() -> None:
     """Forget the uploaded dataset, results and AI outputs, but stay signed in."""
-    for key in (DATASET, RESULTS, SELECTED, "rs_my_resume", "rs_my_result", "rs_my_job", "rs_my_skills",
-                "rs_my_resume_file"):
+    for key in (DATASET, RESULTS, SELECTED, "rs_my_resume", "rs_my_result"):
         st.session_state.pop(key, None)
     st.session_state[AI_OUTPUTS] = {}
     st.session_state[UPLOADER_VERSION] = st.session_state.get(UPLOADER_VERSION, 0) + 1

@@ -29,13 +29,14 @@ EXPERIENCE = ["{n} years of experience", "{n}+ years experience", "over {n} year
 STYLE = [str.upper, str.title, str.lower, lambda s: s]
 
 
+# Bandit B311: 'random' here only makes reproducible fake test data (fixed seed), never secrets.
 def resume(name: str, role: str, index: int) -> str:
-    skills = random.sample(ROLES[role], k=min(5, len(ROLES[role])))
-    phrase = random.choice(EXPERIENCE)
-    years = random.randint(1, 12)
+    skills = random.sample(ROLES[role], k=min(5, len(ROLES[role])))  # nosec B311
+    phrase = random.choice(EXPERIENCE)  # nosec B311
+    years = random.randint(1, 12)  # nosec B311
     experience = "with " + phrase.format(n=years) if phrase else "and recent graduate (B.Sc. 2023)"
     style = STYLE[index % len(STYLE)]
-    contact = f"{name.split()[0].lower()}.{index}@example.com | +1 555 01{index:02d} {random.randint(1000, 9999)}"
+    contact = f"{name.split()[0].lower()}.{index}@example.com | +1 555 01{index:02d} {random.randint(1000, 9999)}"  # nosec B311
     body = (
         f"{style(role)} {experience}. Skilled in {', '.join(skills)}. "
         f"Built and maintained production systems, collaborated with cross-functional teams, "

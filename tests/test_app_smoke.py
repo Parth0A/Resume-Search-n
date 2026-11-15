@@ -56,9 +56,9 @@ def test_job_seeker_flow(temp_db):
     app.run()
     assert not app.exception
     assert app.session_state["rs_page"] == "check"
-    app.text_area(key="rs_my_resume").set_value(
-        "Python developer with 4 years of experience in Django, SQL and Docker.")
-    app.text_area(key="rs_my_job").set_value("We are hiring a Python Django developer who knows Docker.")
+    resume_box, job_box = app.text_area[0], app.text_area[1]
+    resume_box.set_value("Python developer with 4 years of experience in Django, SQL and Docker.")
+    job_box.set_value("We are hiring a Python Django developer who knows Docker.")
     next(button for button in app.button if button.label == "Check my resume").click()
     app.run()
     assert not app.exception

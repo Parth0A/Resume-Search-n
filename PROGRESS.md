@@ -5,11 +5,11 @@
 - [x] CLAUDE.md, PLAN.md, PROGRESS.md created
 - [x] git repository initialised, baseline committed
 
-## Task 1 â€” Fix the main bug
+## Task 1 — Fix the main bug
 - [x] Shared normalisation for query and resumes (lowercase=True)
 - [x] Regression test: capitalised resumes, match ranks first, score > 0.3
 
-## Task 2 â€” Structure
+## Task 2 — Structure
 - [x] resume_search/ package (config, text, dataset, extraction, ranking, export, auth, ai_features), no streamlit import
 - [x] ui/ folder with theme.py + the single styles.css (all inline CSS merged). The remaining ui/ screen modules
       are created in Task 3 together with the redesign, so the old screens are not written twice (see notes).
@@ -20,7 +20,7 @@
 - [x] UI uses only public core functions
 - [x] Caches/stray files removed; old tests kept (split into test_text/dataset/extraction/ranking/export) and passing
 
-## Task 3 â€” UI design
+## Task 3 — UI design
 - [x] 3.1 Design tokens, fonts, .streamlit/config.toml, hide menu/footer/deploy
 - [x] 3.2 Components (buttons, chips, relevance bar, avatar, card header, escaping)
 - [x] 3.3 Logo and branding assets, favicon, page config
@@ -31,7 +31,7 @@
 - [x] 3.8 Small screens and accessibility
 - [x] 3.9 Differences from the design listed below
 
-## Task 4 â€” Security
+## Task 4 — Security
 - [x] SECURITY_REVIEW.md written, every finding fixed (one accepted risk documented: registration reveals existing e-mails)
 - [x] PBKDF2 600k, iterations per user, rehash on login
 - [x] Lockout 15 min after 5 failures; same error for unknown e-mail / wrong password
@@ -45,15 +45,15 @@
 - [x] pip-audit and bandit run, findings fixed or documented
 - [x] .gitignore complete; git history searched for secrets (none found)
 
-## Task 5 â€” Tests and quality
+## Task 5 — Tests and quality
 - [x] Tests per core module (text, dataset, extraction, ranking, export, auth, shortlists/db, ai_features mocked) + app smoke tests
 - [x] Coverage >= 85 % (98.6 %); ruff clean
 - [x] Type hints and docstrings on public functions
 - [x] .pre-commit-config.yaml
-- [x] .github/workflows/ci.yml (3.10â€“3.12) â€” written, not run (no GitHub remote here)
+- [x] .github/workflows/ci.yml (3.10–3.12) — written, not run (no GitHub remote here)
 
-## Task 6 â€” Open-source files
-- [x] README.md (logo, all sections) â€” written for the finished v1.0, so it already lists the Task 7 features
+## Task 6 — Open-source files
+- [x] README.md (logo, all sections) — written for the finished v1.0, so it already lists the Task 7 features
 - [x] README.md per folder (resume_search, ui, tests, assets, data, docs, scripts)
 - [x] docs/architecture.md with Mermaid
 - [x] LICENSE, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md (short original text linking the Contributor Covenant 2.1), CHANGELOG.md
@@ -62,7 +62,7 @@
 - [x] Deployment notes and How to cite
 - [x] data/sample_resumes.csv (40 synthetic), Dockerfile non-root (written; Docker is not installed here, so the image was not built)
 
-## Task 7 â€” Features
+## Task 7 — Features
 - [x] a. Skill aliases and boundary rules
 - [x] b. Better experience detection + include-unknown toggle
 - [x] c. Why this score (top 5 terms)
@@ -73,10 +73,10 @@
 - [x] h. Roles and saved shortlists
 - [x] i. Optional hybrid ranking
 
-## Task 8 â€” Final verification
-- [ ] pytest --cov, ruff, bandit, pip-audit, vulture
-- [ ] Fresh venv start with sample data
-- [ ] Report table
+## Task 8 — Final verification
+- [x] pytest --cov, ruff, bandit, pip-audit, vulture (206 passed, 99 % coverage, all tools clean)
+- [x] Fresh venv start with sample data (requirements.txt only; health 200; search on sample data OK)
+- [x] Report table (in the final summary to the user)
 
 ## Notes, assumptions and differences
 - Python 3.12 and Git were not installed; installed with winget (user approved).
@@ -92,7 +92,7 @@
   of display/export (7f), saved shortlists storage and page (7h recruiter part). Task 7 completes and
   tests the rest.
 
-### Task 3 â€” where the UI differs from the written design (Streamlit limits)
+### Task 3 — where the UI differs from the written design (Streamlit limits)
 - Ranked table is an interactive `st.dataframe` (row click selects the candidate). Its selected-row
   style is Streamlit's own, not `#F5F7FF` with a 3px indigo edge; the candidate name and job title are
   separate columns instead of two lines in one cell; matched skills use the dataframe list style, not
@@ -109,6 +109,11 @@
   windows it simply follows the menu.
 - Account type is chosen only when creating an account (sign-in uses the stored role) instead of on
   both forms.
-- Visual check done in the in-app browser at 1440 px (login, all five pages, search, shortlist) and at
-  375 px for the login page. The signed-in pages at phone width were not screenshot-checked because
-  the browser pane was closed during testing.
+- Visual check done in the in-app browser at 1440 px (login, all five recruiter pages, search, shortlist,
+  job-seeker check) and at 375 px for the login page. The signed-in pages at phone width were not
+  screenshot-checked because the browser pane was closed during testing.
+- Job-seeker page: upload and paste live inside one form with the job description (one primary button),
+  so the resume text is always submitted together with the job.
+- Hybrid ranking was tested with a mocked model only; sentence-transformers was not installed here
+  (large PyTorch download), so real embedding quality and speed are unverified.
+- The CI workflow and the Dockerfile were written but not run (no GitHub remote, no Docker here).
