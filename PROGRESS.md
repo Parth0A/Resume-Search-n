@@ -1,4 +1,4 @@
-﻿# PROGRESS
+# PROGRESS
 
 ## Setup
 - [x] Read every file
@@ -64,7 +64,7 @@
 
 ## Task 7 â€” Features
 - [x] a. Skill aliases and boundary rules
-- [ ] b. Better experience detection + include-unknown toggle
+- [x] b. Better experience detection + include-unknown toggle
 - [ ] c. Why this score (top 5 terms)
 - [ ] d. Paste job description
 - [ ] e. PDF/DOCX/TXT upload, short-file warning

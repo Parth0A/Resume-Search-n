@@ -108,6 +108,35 @@ class TestExtractExperience:
         assert extract_experience("project lasted 2 years") is None
         assert extract_experience("2 years ago I started studying") is None
 
+    @pytest.mark.parametrize(
+        ("text", "years"),
+        [
+            ("5+ years experience in Python", 5),
+            ("Over 5 years of building web apps", 5),
+            ("more than 7 years in data engineering", 7),
+            ("Experience of 4 years with React", 4),
+            ("Total experience: 6+ years", 6),
+            ("8 years' professional experience", 8),
+            ("10 years of hands-on industry experience", 10),
+            ("3 years of experience; later over 6 years leading teams", 6),
+        ],
+    )
+    def test_extracts_more_phrasings(self, text, years):
+        assert extract_experience(text) == years
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "B.Sc. 2019, graduated 2020",
+            "Worked at Acme 2015 - 2021",
+            "Class of 2018 with 2018 experience",
+            "Version 2.5 years tool",
+            "over 99 years",
+        ],
+    )
+    def test_never_uses_graduation_years_or_absurd_values(self, text):
+        assert extract_experience(text) is None
+
     def test_returns_none_for_no_match(self):
         assert extract_experience("Python developer") is None
 

@@ -7,9 +7,17 @@ import re
 from resume_search.config import SKILL_ALIASES
 from resume_search.text import normalize_text
 
+_YEARS = r"(?:years?|yrs?)"
+_NUMBER = r"(?<![\w.])(\d{1,2})(?!\.\d)"  # one or two digits only, so years like 2019 never match
 _EXPERIENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"(?<!\w)(\d{1,2})\s*(?:years?|yrs?)\s*(?:of\s*)?experience\b"),
+    # "5 years of experience", "5+ years experience", "5 years' professional experience"
+    re.compile(_NUMBER + r"\s*\+?\s*" + _YEARS + r"['’]?\s+(?:of\s+)?(?:[a-z-]+\s+){0,3}?experience\b"),
+    # "over 5 years", "more than 5 years", "at least 5+ years"
+    re.compile(r"\b(?:over|more than|at least|nearly|almost|around|about)\s+" + _NUMBER + r"\s*\+?\s*" + _YEARS + r"\b"),
+    # "experience of 5 years", "experience: 5+ years", "total experience - 5 yrs"
+    re.compile(r"\bexperience\s*(?:of|:|-|–)?\s*(?:over\s+|more than\s+|about\s+)?" + _NUMBER + r"\s*\+?\s*" + _YEARS + r"\b"),
 )
+_MAX_YEARS = 50
 
 
 def parse_skills(skills_text: str) -> list[str]:
@@ -81,12 +89,18 @@ def extract_skills(resume_text: str, skills: list[str]) -> list[str]:
 
 
 def extract_experience(resume_text: object) -> int | None:
-    """Return the largest clearly stated number of years of experience, if any."""
+    """Return the largest clearly stated number of years of experience, if any.
+
+    Recognises "5 years of experience", "5+ years experience", "over 5 years",
+    "experience of 5 years" and similar. Four-digit numbers (graduation or
+    employment years) and durations without an experience cue ("project lasted
+    2 years", "2 years ago") are ignored.
+    """
     text = normalize_text(resume_text)
     best: int | None = None
     for pattern in _EXPERIENCE_PATTERNS:
         for match in pattern.finditer(text):
             value = int(match.group(1))
-            if value > 0 and (best is None or value > best):
+            if 0 < value <= _MAX_YEARS and (best is None or value > best):
                 best = value
     return best
