@@ -45,5 +45,20 @@ class TestRedactContactDetails:
         text = "Worked 2015 - 2020 with 5 years of experience."
         assert redact_contact_details(text) == text
 
+    def test_sample_dataset_has_no_contact_details_after_redaction(self):
+        import csv
+        import re
+        from pathlib import Path
+
+        sample = Path(__file__).resolve().parent.parent / "data" / "sample_resumes.csv"
+        with sample.open(encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle))
+        assert rows
+        for row in rows:
+            redacted = redact_contact_details(row["Resume_str"])
+            assert "@" not in redacted
+            assert not re.search(r"\+1 555", redacted)
+            assert "[email hidden]" in redacted and "[phone hidden]" in redacted
+
     def test_non_string(self):
         assert redact_contact_details(None) == ""  # type: ignore[arg-type]

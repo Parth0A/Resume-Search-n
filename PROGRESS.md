@@ -68,7 +68,7 @@
 - [x] c. Why this score (top 5 terms)
 - [x] d. Paste job description
 - [x] e. PDF/DOCX/TXT upload, short-file warning
-- [ ] f. Blind screening
+- [x] f. Blind screening
 - [ ] g. scripts/evaluate.py
 - [ ] h. Roles and saved shortlists
 - [ ] i. Optional hybrid ranking
