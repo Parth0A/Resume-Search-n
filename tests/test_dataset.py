@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import io
+
 import pandas as pd
 import pytest
 
 from resume_search.config import MAX_UPLOAD_BYTES
 from resume_search.dataset import (
+    documents_to_dataframe,
     find_resume_column,
     is_resume_text_usable,
     load_resumes,
+    read_document,
     read_resume_csv,
     validate_upload,
 )
@@ -77,6 +81,95 @@ class TestValidateUpload:
         monkeypatch.setattr("resume_search.dataset.MAX_UPLOAD_BYTES", 10)
         with pytest.raises(ValueError, match="maximum"):
             read_resume_csv(b"Resume_str\n" + b"x" * 20)
+
+
+def _pdf(text: str) -> bytes:
+    """Build a tiny one-page PDF containing ``text`` (synthetic, for tests only)."""
+    stream = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode()
+    objects = [
+        b"<</Type/Catalog/Pages 2 0 R>>",
+        b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+        b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>",
+        b"<</Length " + str(len(stream)).encode() + b">>stream\n" + stream + b"\nendstream",
+        b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for number, body in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += f"{number} 0 obj".encode() + body + b"endobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
+    out += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets)
+    out += f"trailer<</Size {len(objects) + 1}/Root 1 0 R>>\nstartxref\n{xref}\n%%EOF".encode()
+    return bytes(out)
+
+
+def _docx(text: str) -> bytes:
+    from docx import Document
+
+    document = Document()
+    document.add_paragraph(text)
+    table = document.add_table(rows=1, cols=1)
+    table.cell(0, 0).text = "Skills: Kubernetes"
+    buffer = io.BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
+
+
+LONG = " ".join(["Python developer with Django and SQL experience building APIs"] * 4)
+
+
+class TestDocuments:
+    def test_txt_utf8_and_latin1(self):
+        assert read_document("Café manager".encode(), "a.txt") == "Café manager"
+        assert read_document("Caf\xe9".encode("latin-1"), "b.TXT") == "Caf\xe9"
+
+    def test_pdf(self):
+        assert "Python developer" in read_document(_pdf("Python developer resume"), "cv.pdf")
+
+    def test_docx_paragraphs_and_tables(self):
+        text = read_document(_docx("Data analyst resume"), "cv.docx")
+        assert "Data analyst resume" in text
+        assert "Kubernetes" in text
+
+    def test_damaged_pdf(self):
+        with pytest.raises(ValueError, match="Could not read cv.pdf"):
+            read_document(b"%PDF-1.4 garbage", "cv.pdf")
+
+    def test_unsupported_type(self):
+        with pytest.raises(ValueError, match="Unsupported"):
+            read_document(b"data", "cv.csv")
+
+    def test_documents_to_dataframe_with_short_file_warning(self):
+        df, warnings = documents_to_dataframe([
+            ("asha_rao.txt", LONG.encode()),
+            ("short.pdf", _pdf("Python developer")),
+        ])
+        assert list(df["Name"]) == ["asha_rao", "short"]
+        assert len(warnings) == 1 and "short.pdf has only" in warnings[0]
+
+    def test_documents_to_dataframe_requires_files(self):
+        with pytest.raises(ValueError, match="at least one"):
+            documents_to_dataframe([])
+
+    def test_documents_without_text_rejected(self):
+        with pytest.raises(ValueError, match="blank"):
+            documents_to_dataframe([("empty.txt", b"   ...   ")])
+
+    def test_missing_library_message(self, monkeypatch):
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "pypdf":
+                raise ImportError("no pypdf")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        with pytest.raises(ValueError, match="pip install"):
+            read_document(_pdf("x"), "cv.pdf")
 
 
 class TestFindResumeColumn:

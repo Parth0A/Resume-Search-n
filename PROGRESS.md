@@ -67,7 +67,7 @@
 - [x] b. Better experience detection + include-unknown toggle
 - [x] c. Why this score (top 5 terms)
 - [x] d. Paste job description
-- [ ] e. PDF/DOCX/TXT upload, short-file warning
+- [x] e. PDF/DOCX/TXT upload, short-file warning
 - [ ] f. Blind screening
 - [ ] g. scripts/evaluate.py
 - [ ] h. Roles and saved shortlists

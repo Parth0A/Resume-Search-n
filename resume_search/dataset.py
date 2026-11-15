@@ -14,12 +14,14 @@ import pandas as pd
 from resume_search.config import (
     CATEGORY_COLUMN,
     DATASET_EXTENSIONS,
+    DOCUMENT_EXTENSIONS,
     MAX_UPLOAD_BYTES,
     MAX_UPLOAD_MB,
+    MIN_RESUME_WORDS,
     NAME_COLUMN,
     RESUME_TEXT_COLUMNS,
 )
-from resume_search.text import has_words
+from resume_search.text import has_words, word_count
 
 
 def find_resume_column(df: pd.DataFrame) -> str:
@@ -116,3 +118,65 @@ def validate_resume_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def load_resumes(file_bytes: bytes) -> pd.DataFrame:
     """Read and validate a resume CSV in one step."""
     return validate_resume_dataframe(read_resume_csv(file_bytes))
+
+
+def read_document(file_bytes: bytes, filename: str) -> str:
+    """Extract plain text from one PDF, DOCX or TXT resume.
+
+    Raises:
+        ValueError: when the file type is unsupported or the file cannot be read.
+    """
+    extension = validate_upload(filename, len(file_bytes), DOCUMENT_EXTENSIONS)
+    try:
+        if extension == ".txt":
+            try:
+                return file_bytes.decode("utf-8")
+            except UnicodeDecodeError:
+                return file_bytes.decode("latin-1")
+        if extension == ".pdf":
+            from pypdf import PdfReader
+
+            reader = PdfReader(io.BytesIO(file_bytes))
+            return "\n".join(page.extract_text() or "" for page in reader.pages)
+        from docx import Document
+
+        document = Document(io.BytesIO(file_bytes))
+        parts = [paragraph.text for paragraph in document.paragraphs]
+        for table in document.tables:
+            parts.extend(cell.text for row in table.rows for cell in row.cells)
+        return "\n".join(parts)
+    except ImportError as error:
+        raise ValueError(
+            "PDF and DOCX support needs the 'pypdf' and 'python-docx' packages (pip install -r requirements.txt)."
+        ) from error
+    except Exception as error:  # parsers raise many different error types for damaged files
+        raise ValueError(f"Could not read {Path(filename).name}. The file may be damaged or protected.") from error
+
+
+def documents_to_dataframe(files: list[tuple[str, bytes]]) -> tuple[pd.DataFrame, list[str]]:
+    """Turn individual resume files into a dataset (one row per file).
+
+    Returns:
+        The validated dataframe (``Name`` = file name without extension) and a list of
+        warnings for files with fewer than ``MIN_RESUME_WORDS`` words.
+
+    Raises:
+        ValueError: when no file is given, a file cannot be read or nothing has text.
+    """
+    if not files:
+        raise ValueError("Upload at least one resume file.")
+    names: list[str] = []
+    texts: list[str] = []
+    warnings: list[str] = []
+    for filename, file_bytes in files:
+        text = read_document(file_bytes, filename)
+        words = word_count(text)
+        if words < MIN_RESUME_WORDS:
+            warnings.append(
+                f"{Path(filename).name} has only {words} words — it may be a scan or mostly images, "
+                "so its score may be unreliable."
+            )
+        names.append(Path(filename).stem)
+        texts.append(text)
+    df = pd.DataFrame({NAME_COLUMN: names, CATEGORY_COLUMN: [""] * len(texts), RESUME_TEXT_COLUMNS[0]: texts})
+    return validate_resume_dataframe(df), warnings

@@ -67,12 +67,13 @@ streamlit run app.py
 The app opens at <http://localhost:8501>. Create an account on the sign-in page. Accounts live in
 a local SQLite file (`resume_search.db`, or the path in `RESUME_SEARCH_DB`).
 
-### Optional extras
+### Optional extra: hybrid ranking
 
 ```bash
-pip install pypdf python-docx          # PDF and DOCX resume uploads
-pip install sentence-transformers      # hybrid (semantic) ranking, downloads ~90 MB model
+pip install sentence-transformers      # installs PyTorch; the model download is about 90 MB
 ```
+
+PDF and DOCX uploads use `pypdf` and `python-docx`, which `requirements.txt` already includes.
 
 ### Gemini (optional)
 
